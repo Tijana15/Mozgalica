@@ -1,19 +1,14 @@
-import * as SQLite from "expo-sqlite";
+// src/utils/database.js
+import * as SQLite from "expo-sqlite"; // Koristimo novu verziju
 import { Alert } from "react-native";
 
 let db = null;
 
 const openDatabase = async () => {
   try {
-    if (SQLite.openDatabaseAsync) {
-      db = await SQLite.openDatabaseAsync("users.db");
-      console.log('Baza podataka "users.db" je otvorena (nova sintaksa).');
-    } else if (SQLite.openDatabase) {
-      db = SQLite.openDatabase("users.db");
-      console.log('Baza podataka "users.db" je otvorena (stara sintaksa).');
-    } else {
-      throw new Error("expo-sqlite modul nije pravilno učitan");
-    }
+    // Uvek koristimo novu asinhronu metodu
+    db = await SQLite.openDatabaseAsync("mozgalica.db");
+    console.log('Baza podataka "mozgalica.db" je otvorena.');
     return db;
   } catch (error) {
     console.error("Greška pri otvaranju baze podataka:", error);
@@ -21,7 +16,7 @@ const openDatabase = async () => {
       "Greška",
       "Baza podataka nije dostupna. Molimo pokušajte ponovo."
     );
-    return null;
+    throw error; // Ponovo baci grešku da bi je uhvatio pozivalac
   }
 };
 
@@ -31,85 +26,45 @@ export const initDatabase = async () => {
       await openDatabase();
     }
 
-    if (!db) {
-      console.error("Konekcija sa bazom podataka nije uspostavljena");
-      return;
-    }
-
-    if (db.execAsync) {
-      await db.execAsync(`
-        CREATE TABLE IF NOT EXISTS users (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          username TEXT NOT NULL UNIQUE,
-          password TEXT NOT NULL
-        );
-      `);
-      console.log('Tabela "users" kreirana uspešno (nova sintaksa).');
-    } else {
-      db.transaction((tx) => {
-        tx.executeSql(
-          `CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL UNIQUE,
-            password TEXT NOT NULL
-          );`,
-          [],
-          () =>
-            console.log('Tabela "users" kreirana uspešno (stara sintaksa).'),
-          (tx, error) =>
-            console.log('Greška pri kreiranju tabele "users":', error)
-        );
-      });
-    }
+    // Koristimo transakciju za kreiranje obe tabele
+    await db.execAsync(`
+      PRAGMA journal_mode = WAL;
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS game_results (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL,
+        game_name TEXT NOT NULL,
+        score INTEGER NOT NULL,
+        time_taken INTEGER,
+        date_played DATETIME DEFAULT (strftime('%Y-%m-%d %H:%M:%S', 'now', 'localtime')),
+        additional_data TEXT,
+        FOREIGN KEY (username) REFERENCES users (username)
+      );
+    `);
+    console.log("Tabele su uspešno kreirane ili već postoje.");
   } catch (error) {
     console.error("Greška pri inicijalizaciji baze:", error);
+    throw error;
   }
 };
 
 export const registerUser = async (username, password) => {
   try {
-    if (!db) {
-      await openDatabase();
-    }
-
-    if (!db) {
-      throw new Error("Baza podataka nije dostupna za registraciju.");
-    }
-
-    if (db.runAsync) {
-      try {
-        const result = await db.runAsync(
-          "INSERT INTO users (username, password) VALUES (?, ?);",
-          [username, password]
-        );
-        return result.changes > 0;
-      } catch (error) {
-        if (error.message.includes("UNIQUE constraint failed")) {
-          throw new Error("Korisničko ime je već zauzeto.");
-        }
-        throw error;
-      }
-    } else {
-      return new Promise((resolve, reject) => {
-        db.transaction((tx) => {
-          tx.executeSql(
-            "INSERT INTO users (username, password) VALUES (?, ?);",
-            [username, password],
-            (_, result) => {
-              resolve(result.rowsAffected > 0);
-            },
-            (tx, error) => {
-              if (error.message.includes("UNIQUE constraint failed")) {
-                reject(new Error("Korisničko ime je već zauzeto."));
-              } else {
-                reject(error);
-              }
-            }
-          );
-        });
-      });
-    }
+    const result = await db.runAsync(
+      "INSERT INTO users (username, password) VALUES (?, ?);",
+      // Parametri se prosleđuju kao odvojeni argumenti
+      username,
+      password
+    );
+    return result.changes > 0;
   } catch (error) {
+    if (error.message.includes("UNIQUE constraint failed")) {
+      throw new Error("Korisničko ime je već zauzeto.");
+    }
     console.error("Greška pri registraciji:", error);
     throw error;
   }
@@ -117,36 +72,82 @@ export const registerUser = async (username, password) => {
 
 export const checkUserCredentials = async (username, password) => {
   try {
-    if (!db) {
-      await openDatabase();
-    }
-
-    if (!db) {
-      throw new Error("Baza podataka nije dostupna za proveru kredencijala.");
-    }
-
-    if (db.getFirstAsync) {
-      const user = await db.getFirstAsync(
-        "SELECT * FROM users WHERE username = ? AND password = ?;",
-        [username, password]
-      );
-      return user !== null;
-    } else {
-      return new Promise((resolve, reject) => {
-        db.transaction((tx) => {
-          tx.executeSql(
-            "SELECT * FROM users WHERE username = ? AND password = ?;",
-            [username, password],
-            (_, { rows }) => {
-              resolve(rows.length > 0);
-            },
-            (tx, error) => reject(error)
-          );
-        });
-      });
-    }
+    const user = await db.getFirstAsync(
+      "SELECT * FROM users WHERE username = ? AND password = ?;",
+      // Parametri kao odvojeni argumenti
+      username,
+      password
+    );
+    return user !== null;
   } catch (error) {
     console.error("Greška pri proveri kredencijala:", error);
+    throw error;
+  }
+};
+
+export const saveGameResult = async (
+  username,
+  gameName,
+  score,
+  timeTaken = null,
+  additionalData = null,
+  db
+) => {
+  try {
+    if (!db) {
+      console.error(
+        "Greška: db instanca nije proslijeđena funkciji saveGameResult."
+      );
+      throw new Error("Database instance is not available.");
+    }
+    const additionalDataString = additionalData
+      ? JSON.stringify(additionalData)
+      : null;
+
+    const result = await db.runAsync(
+      "INSERT INTO game_results (username, game_name, score, time_taken, additional_data) VALUES (?, ?, ?, ?, ?);",
+      [username, gameName, score, timeTaken, additionalDataString]
+    );
+    console.log("Rezultat igre sačuvan, ID:", result.lastInsertRowId);
+    return result.changes > 0;
+  } catch (error) {
+    console.error("Greška pri čuvanju rezultata:", error);
+    throw error;
+  }
+};
+
+export const getGameResults = async (filters = {}) => {
+  try {
+    let query = "SELECT * FROM game_results WHERE 1=1";
+    let params = [];
+
+    if (filters.username) {
+      query += " AND username = ?";
+      params.push(filters.username);
+    }
+    if (filters.gameName) {
+      query += " AND game_name = ?";
+      params.push(filters.gameName);
+    }
+
+    query += " ORDER BY date_played DESC";
+
+    if (filters.limit) {
+      query += " LIMIT ?";
+      params.push(filters.limit);
+    }
+
+    // Koristimo spread operator (...) da prosledimo niz kao odvojene argumente
+    const results = await db.getAllAsync(query, ...params);
+
+    return results.map((result) => ({
+      ...result,
+      additional_data: result.additional_data
+        ? JSON.parse(result.additional_data)
+        : null,
+    }));
+  } catch (error) {
+    console.error("Greška pri dobijanju rezultata:", error);
     throw error;
   }
 };

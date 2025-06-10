@@ -1,0 +1,271 @@
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  Alert,
+  RefreshControl,
+  ActivityIndicator,
+} from "react-native";
+import { getGameResults, clearGameResults } from "../../utils/database"; // Pretpostavka da ove funkcije postoje
+
+const ResultsHistoryScreen = ({ navigation, route }) => {
+  const { username } = route.params;
+  const [results, setResults] = useState([]);
+  const [filteredResults, setFilteredResults] = useState([]);
+  const [selectedGame, setSelectedGame] = useState("Sve");
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const gameTypes = ["Sve", "Sudoku", "Matematički kviz", "Memory Match"];
+
+  // Učitavanje rezultata
+  const loadResults = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const userResults = await getGameResults(username);
+      // Sortiranje rezultata od najnovijeg ka najstarijem
+      const sortedResults = userResults.sort(
+        (a, b) => new Date(b.date) - new Date(a.date)
+      );
+      setResults(sortedResults);
+    } catch (error) {
+      console.error("Greška pri učitavanju rezultata:", error);
+      Alert.alert("Greška", "Nije moguće učitati rezultate.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [username]);
+
+  // Učitaj rezultate pri prvom renderovanju komponente
+  useEffect(() => {
+    loadResults();
+  }, [loadResults]);
+
+  // Filtriranje rezultata kada se promene rezultati ili filter
+  useEffect(() => {
+    if (selectedGame === "Sve") {
+      setFilteredResults(results);
+    } else {
+      const filtered = results.filter((result) => result.game === selectedGame);
+      setFilteredResults(filtered);
+    }
+  }, [results, selectedGame]);
+
+  // Rukovanje osvežavanjem (povuci-za-osvežavanje)
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadResults();
+    setRefreshing(false);
+  };
+
+  // Brisanje istorije
+  const clearHistory = () => {
+    Alert.alert(
+      "Brisanje istorije",
+      "Da li ste sigurni da želite da obrišete svu istoriju rezultata?",
+      [
+        { text: "Otkaži", style: "cancel" },
+        {
+          text: "Obriši",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await clearGameResults(username);
+              setResults([]);
+              setFilteredResults([]);
+              Alert.alert("Uspeh", "Istorija rezultata je uspešno obrisana.");
+            } catch (error) {
+              console.error("Greška pri brisanju:", error);
+              Alert.alert("Greška", "Nije moguće obrisati istoriju rezultata.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleFilterChange = (game) => {
+    setSelectedGame(game);
+  };
+
+  // Renderovanje pojedinačnog rezultata u listi
+  const renderResultItem = ({ item }) => (
+    <View style={styles.resultItem}>
+      <Text style={styles.gameText}>{item.game}</Text>
+      <Text style={styles.scoreText}>Rezultat: {item.score}</Text>
+      <Text style={styles.dateText}>
+        {new Date(item.date).toLocaleDateString("sr-RS", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </Text>
+    </View>
+  );
+
+  if (isLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text>Učitavanje rezultata...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Istorija Rezultata</Text>
+
+      {/* Filteri */}
+      <View style={styles.filterContainer}>
+        {gameTypes.map((game) => (
+          <TouchableOpacity
+            key={game}
+            style={[
+              styles.filterButton,
+              selectedGame === game && styles.selectedFilter,
+            ]}
+            onPress={() => handleFilterChange(game)}
+          >
+            <Text
+              style={[
+                styles.filterButtonText,
+                selectedGame === game && styles.selectedFilterText,
+              ]}
+            >
+              {game}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Lista rezultata */}
+      {filteredResults.length > 0 ? (
+        <FlatList
+          data={filteredResults}
+          renderItem={renderResultItem}
+          keyExtractor={(item, index) => `${item.id}-${index}`} // Jedinstveni ključ
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#007AFF"]}
+            />
+          }
+        />
+      ) : (
+        <View style={styles.centered}>
+          <Text style={styles.noResultsText}>Nema rezultata za prikaz.</Text>
+        </View>
+      )}
+
+      {/* Dugme za brisanje */}
+      {results.length > 0 && (
+        <TouchableOpacity style={styles.clearButton} onPress={clearHistory}>
+          <Text style={styles.clearButtonText}>Obriši Istoriju</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F7F7F7",
+    padding: 15,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#333",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  filterContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 20,
+    flexWrap: "wrap",
+  },
+  filterButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: "#E0E0E0",
+    margin: 4,
+  },
+  selectedFilter: {
+    backgroundColor: "#007AFF",
+  },
+  filterButtonText: {
+    fontSize: 14,
+    color: "#333",
+  },
+  selectedFilterText: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+  },
+  listContent: {
+    paddingBottom: 20,
+  },
+  resultItem: {
+    backgroundColor: "#FFFFFF",
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  gameText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+  },
+  scoreText: {
+    fontSize: 16,
+    color: "#555",
+    marginTop: 5,
+  },
+  dateText: {
+    fontSize: 12,
+    color: "#888",
+    marginTop: 8,
+    textAlign: "right",
+  },
+  noResultsText: {
+    fontSize: 18,
+    color: "#666",
+  },
+  clearButton: {
+    backgroundColor: "#FF3B30",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  clearButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+});
+
+export default ResultsHistoryScreen;
