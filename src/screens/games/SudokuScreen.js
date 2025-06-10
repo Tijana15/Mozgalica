@@ -19,9 +19,7 @@ const SudokuScreen = ({ navigation, route }) => {
   const [gameTime, setGameTime] = useState(0);
   const [isGameComplete, setIsGameComplete] = useState(false);
 
-  // Generisanje osnovne Sudoku tabele
   const generateSudokuPuzzle = () => {
-    // Kompletna sudoku tabela sa rešenjem
     const completeGrid = [
       [5, 3, 4, 6, 7, 8, 9, 1, 2],
       [6, 7, 2, 1, 9, 5, 3, 4, 8],
@@ -34,9 +32,8 @@ const SudokuScreen = ({ navigation, route }) => {
       [3, 4, 5, 2, 8, 6, 1, 7, 9],
     ];
 
-    // Kreiranje puzzle-a uklanjanjem brojeva
     const puzzleGrid = completeGrid.map((row) => [...row]);
-    const cellsToRemove = 40; // Broj polja za uklanjanje
+    const cellsToRemove = 40;
 
     for (let i = 0; i < cellsToRemove; i++) {
       const row = Math.floor(Math.random() * 9);
@@ -49,7 +46,6 @@ const SudokuScreen = ({ navigation, route }) => {
     return puzzleGrid;
   };
 
-  // Inicijalizacija igre
   useEffect(() => {
     const puzzle = generateSudokuPuzzle();
     setSudokuGrid(puzzle);
@@ -57,7 +53,6 @@ const SudokuScreen = ({ navigation, route }) => {
     setStartTime(Date.now());
   }, []);
 
-  // Timer
   useEffect(() => {
     let interval;
     if (startTime && !isGameComplete) {
@@ -68,7 +63,6 @@ const SudokuScreen = ({ navigation, route }) => {
     return () => clearInterval(interval);
   }, [startTime, isGameComplete]);
 
-  // Formatiranje vremena
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -77,19 +71,15 @@ const SudokuScreen = ({ navigation, route }) => {
       .padStart(2, "0")}`;
   };
 
-  // Proverava da li je broj valjan na određenoj poziciji
   const isValidMove = (grid, row, col, num) => {
-    // Provera reda
     for (let i = 0; i < 9; i++) {
       if (grid[row][i] === num) return false;
     }
 
-    // Provera kolone
     for (let i = 0; i < 9; i++) {
       if (grid[i][col] === num) return false;
     }
 
-    // Provera 3x3 bloka
     const startRow = Math.floor(row / 3) * 3;
     const startCol = Math.floor(col / 3) * 3;
     for (let i = startRow; i < startRow + 3; i++) {
@@ -101,7 +91,6 @@ const SudokuScreen = ({ navigation, route }) => {
     return true;
   };
 
-  // Proverava da li je igra završena
   const checkGameComplete = (grid) => {
     for (let i = 0; i < 9; i++) {
       for (let j = 0; j < 9; j++) {
@@ -111,13 +100,11 @@ const SudokuScreen = ({ navigation, route }) => {
     return true;
   };
 
-  // Rukovanje klikom na ćeliju
   const handleCellPress = (row, col) => {
-    if (originalGrid[row][col] !== 0) return; // Ne može menjati originalne brojeve
+    if (originalGrid[row][col] !== 0) return;
     setSelectedCell({ row, col });
   };
 
-  // Unošenje broja
   const handleNumberPress = (num) => {
     if (!selectedCell) return;
 
@@ -140,13 +127,12 @@ const SudokuScreen = ({ navigation, route }) => {
     }
   };
 
-  // Čuvanje rezultata
   const saveGameComplete = async () => {
     try {
       await saveGameResult({
         username,
         game: "Sudoku",
-        score: Math.max(1000 - gameTime, 100), // Veći skor za brže rešavanje
+        score: Math.max(1000 - gameTime, 100),
         time: gameTime,
         date: new Date().toISOString(),
       });
@@ -167,7 +153,6 @@ const SudokuScreen = ({ navigation, route }) => {
     }
   };
 
-  // Novo pokretanje igre
   const restartGame = () => {
     const puzzle = generateSudokuPuzzle();
     setSudokuGrid(puzzle);
@@ -178,7 +163,6 @@ const SudokuScreen = ({ navigation, route }) => {
     setIsGameComplete(false);
   };
 
-  // Hint funkcija
   const getHint = () => {
     for (let i = 0; i < 9; i++) {
       for (let j = 0; j < 9; j++) {

@@ -22,7 +22,6 @@ const MathQuizScreen = ({ navigation, route }) => {
 
   const TOTAL_QUESTIONS = 10;
 
-  // Generiranje matematičkih pitanja
   const generateQuestions = () => {
     const newQuestions = [];
     const operations = ["+", "-", "*", "/"];
@@ -59,7 +58,6 @@ const MathQuizScreen = ({ navigation, route }) => {
           correctAnswer = 2;
       }
 
-      // Generiranje pogrešnih odgovora
       const wrongAnswers = [];
       while (wrongAnswers.length < 3) {
         let wrongAnswer;
@@ -78,7 +76,6 @@ const MathQuizScreen = ({ navigation, route }) => {
         }
       }
 
-      // Mešanje odgovora
       const allAnswers = [correctAnswer, ...wrongAnswers];
       const shuffledAnswers = allAnswers.sort(() => Math.random() - 0.5);
 
@@ -93,14 +90,12 @@ const MathQuizScreen = ({ navigation, route }) => {
     return newQuestions;
   };
 
-  // Inicijalizacija igre
   useEffect(() => {
     const newQuestions = generateQuestions();
     setQuestions(newQuestions);
     setStartTime(Date.now());
   }, []);
 
-  // Timer
   useEffect(() => {
     let interval;
     if (startTime && !isGameComplete) {
@@ -111,7 +106,6 @@ const MathQuizScreen = ({ navigation, route }) => {
     return () => clearInterval(interval);
   }, [startTime, isGameComplete]);
 
-  // Formatiranje vremena
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -120,7 +114,6 @@ const MathQuizScreen = ({ navigation, route }) => {
       .padStart(2, "0")}`;
   };
 
-  // Rukovanje odgovorom
   const handleAnswerPress = (answer) => {
     if (isAnswered) return;
 
@@ -133,14 +126,12 @@ const MathQuizScreen = ({ navigation, route }) => {
       setScore((prevScore) => prevScore + points);
     }
 
-    // Prikaži rezultat na 1.5 sekunde
     setTimeout(() => {
       if (currentQuestion + 1 < TOTAL_QUESTIONS) {
         setCurrentQuestion((prev) => prev + 1);
         setSelectedAnswer(null);
         setIsAnswered(false);
       } else {
-        // Kraj igre
         setIsGameComplete(true);
         saveGameComplete(
           score +
@@ -154,7 +145,6 @@ const MathQuizScreen = ({ navigation, route }) => {
     }, 1500);
   };
 
-  // Čuvanje rezultata
   const saveGameComplete = async (finalScore) => {
     try {
       await saveGameResult({
@@ -184,7 +174,6 @@ const MathQuizScreen = ({ navigation, route }) => {
     }
   };
 
-  // Nova igra
   const restartGame = () => {
     const newQuestions = generateQuestions();
     setQuestions(newQuestions);

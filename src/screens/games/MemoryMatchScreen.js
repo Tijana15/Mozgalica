@@ -6,16 +6,15 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
-  Dimensions,
-  ActivityIndicator, // Dodajte ActivityIndicator za loading state
+  ActivityIndicator,
 } from "react-native";
-import { saveGameResult } from "../../utils/database"; // Vaša funkcija za bazu
-import * as SQLite from "expo-sqlite"; // <-- DODATO: Uvozite SQLite
+import { saveGameResult } from "../../utils/database";
+import * as SQLite from "expo-sqlite";
 
 const MemoryMatchScreen = ({ navigation, route }) => {
   const { username } = route.params;
-  const [db, setDb] = useState(null); // <-- DODATO: Stanje za instancu baze podataka
-  const [isLoadingDb, setIsLoadingDb] = useState(true); // <-- DODATO: Stanje za praćenje učitavanja baze
+  const [db, setDb] = useState(null);
+  const [isLoadingDb, setIsLoadingDb] = useState(true);
 
   const [cards, setCards] = useState([]);
   const [flippedCards, setFlippedCards] = useState([]);
@@ -29,15 +28,13 @@ const MemoryMatchScreen = ({ navigation, route }) => {
   const GRID_SIZE = 4; // 4x4 grid = 16 cards (8 pairs)
   const cardSymbols = ["🎯", "🎮", "🎲", "🎭", "🎨", "🎪", "🎫", "🎬"];
 
-  // --- DODATO: useEffect za otvaranje i inicijalizaciju baze podataka ---
   useEffect(() => {
     async function openAndInitDb() {
       try {
-        const database = await SQLite.openDatabaseAsync("mojaNovaBaza.db"); // Koristite isti naziv baze
+        const database = await SQLite.openDatabaseAsync("mojaNovaBaza.db");
         setDb(database);
         console.log("MemoryMatchScreen: Baza podataka uspješno otvorena.");
 
-        // Inicijalizacija tabele (provjerite da li je ista kao u App.js ako imate App.js)
         await database.execAsync(`
           CREATE TABLE IF NOT EXISTS game_results (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,29 +59,25 @@ const MemoryMatchScreen = ({ navigation, route }) => {
           "Nije moguće pristupiti bazi podataka. Pokušajte ponovo."
         );
       } finally {
-        setIsLoadingDb(false); // Završeno učitavanje baze
+        setIsLoadingDb(false);
       }
     }
 
     openAndInitDb();
 
-    // Čišćenje prilikom unmounta komponente (opcionalno, ali dobra praksa)
     return () => {
       if (db) {
         // db.closeAsync(); // SQLite se često ne zatvara eksplicitno, ali je dobra praksa
       }
     };
-  }, []); // Pokreće se samo jednom na mountu komponente
+  }, []);
 
-  // --- Postojeći useEffect za generiranje karata i timer ---
   useEffect(() => {
-    // Generiranje karata
     const newCards = generateCards();
     setCards(newCards);
     setStartTime(Date.now());
   }, []);
 
-  // Timer
   useEffect(() => {
     let interval;
     if (startTime && !isGameComplete) {
@@ -95,7 +88,6 @@ const MemoryMatchScreen = ({ navigation, route }) => {
     return () => clearInterval(interval);
   }, [startTime, isGameComplete]);
 
-  // Formatiranje vremena
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -104,7 +96,6 @@ const MemoryMatchScreen = ({ navigation, route }) => {
       .padStart(2, "0")}`;
   };
 
-  // Generiranje karata (ova funkcija ostaje ista)
   const generateCards = () => {
     const pairs = [];
     cardSymbols.forEach((symbol, index) => {
@@ -119,9 +110,8 @@ const MemoryMatchScreen = ({ navigation, route }) => {
     return pairs.sort(() => Math.random() - 0.5);
   };
 
-  // Rukovanje klikom na kartu (ostaje isto, ali dodajte provjeru `isLoadingDb`)
   const handleCardPress = (cardId) => {
-    if (isLoadingDb || isProcessing || flippedCards.length >= 2) return; // <-- DODATO: Provjera isLoadingDb
+    if (isLoadingDb || isProcessing || flippedCards.length >= 2) return;
 
     const card = cards.find((c) => c.id === cardId);
     if (card.isFlipped || card.isMatched) return;
@@ -156,7 +146,7 @@ const MemoryMatchScreen = ({ navigation, route }) => {
 
           if (newMatchedCards.length === cards.length) {
             setIsGameComplete(true);
-            saveGameComplete(); // Poziv za spremanje rezultata
+            saveGameComplete();
           }
         } else {
           setCards((prevCards) =>
@@ -174,16 +164,14 @@ const MemoryMatchScreen = ({ navigation, route }) => {
     }
   };
 
-  // Čuvanje rezultata
   const saveGameComplete = async () => {
-    // KLJUČNO: Provjerite da li je `db` instanca spremna PRIJE pozivanja `saveGameResult`
     if (!db) {
       console.error("saveGameComplete: DB instanca nije spremna.");
       Alert.alert(
         "Greška",
         "Baza podataka nije inicijalizovana. Ne mogu sačuvati rezultat."
       );
-      return; // Prekini funkciju ako db nije spreman
+      return;
     }
 
     try {
@@ -191,14 +179,13 @@ const MemoryMatchScreen = ({ navigation, route }) => {
       const moveBonus = Math.max(200 - moves * 10, 0);
       const totalScore = timeBonus + moveBonus + 100;
 
-      // KLJUČNO: PROSLIJEDITE db INSTANCU KAO ZADNJI ARGUMENT!
       await saveGameResult(
         username,
-        "Memory Match", // Ime igre kao string
+        "Memory Match",
         totalScore,
         gameTime,
-        { date: new Date().toISOString(), moves: moves }, // Dodatni podaci
-        db // <-- OVDE PROSLEĐUJETE db instancu
+        { date: new Date().toISOString(), moves: moves },
+        db
       );
 
       Alert.alert(
@@ -220,7 +207,6 @@ const MemoryMatchScreen = ({ navigation, route }) => {
     }
   };
 
-  // Nova igra
   const restartGame = () => {
     const newCards = generateCards();
     setCards(newCards);
@@ -233,10 +219,8 @@ const MemoryMatchScreen = ({ navigation, route }) => {
     setIsProcessing(false);
   };
 
-  // Računanje progresa
   const progress = (matchedCards.length / cards.length) * 100;
 
-  // Prikaz loading indikatora dok se baza ne učita
   if (isLoadingDb) {
     return (
       <View
@@ -257,7 +241,6 @@ const MemoryMatchScreen = ({ navigation, route }) => {
 
   return (
     <ScrollView style={styles.container}>
-      {/* ... ostali UI elementi ostaju isti ... */}
       <View style={styles.header}>
         <Text style={styles.title}>Memory Match</Text>
         <Text style={styles.player}>Igrač: {username}</Text>
@@ -295,7 +278,7 @@ const MemoryMatchScreen = ({ navigation, route }) => {
                 card.isFlipped ||
                 card.isMatched ||
                 isLoadingDb
-              } // <-- DODATO: disable ako se baza učitava
+              }
             >
               <Text style={styles.cardText}>
                 {card.isFlipped || card.isMatched ? card.symbol : "❓"}

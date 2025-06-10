@@ -9,7 +9,7 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from "react-native";
-import { getGameResults, clearGameResults } from "../../utils/database"; // Pretpostavka da ove funkcije postoje
+import { getGameResults, clearGameResults } from "../../utils/database";
 
 const ResultsHistoryScreen = ({ navigation, route }) => {
   const { username } = route.params;
@@ -21,12 +21,10 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
 
   const gameTypes = ["Sve", "Sudoku", "Matematički kviz", "Memory Match"];
 
-  // Učitavanje rezultata
   const loadResults = useCallback(async () => {
     try {
       setIsLoading(true);
       const userResults = await getGameResults(username);
-      // Sortiranje rezultata od najnovijeg ka najstarijem
       const sortedResults = userResults.sort(
         (a, b) => new Date(b.date) - new Date(a.date)
       );
@@ -39,12 +37,10 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
     }
   }, [username]);
 
-  // Učitaj rezultate pri prvom renderovanju komponente
   useEffect(() => {
     loadResults();
   }, [loadResults]);
 
-  // Filtriranje rezultata kada se promene rezultati ili filter
   useEffect(() => {
     if (selectedGame === "Sve") {
       setFilteredResults(results);
@@ -54,14 +50,12 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
     }
   }, [results, selectedGame]);
 
-  // Rukovanje osvežavanjem (povuci-za-osvežavanje)
   const onRefresh = async () => {
     setRefreshing(true);
     await loadResults();
     setRefreshing(false);
   };
 
-  // Brisanje istorije
   const clearHistory = () => {
     Alert.alert(
       "Brisanje istorije",
@@ -91,7 +85,6 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
     setSelectedGame(game);
   };
 
-  // Renderovanje pojedinačnog rezultata u listi
   const renderResultItem = ({ item }) => (
     <View style={styles.resultItem}>
       <Text style={styles.gameText}>{item.game}</Text>
@@ -121,7 +114,6 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
     <View style={styles.container}>
       <Text style={styles.title}>Istorija Rezultata</Text>
 
-      {/* Filteri */}
       <View style={styles.filterContainer}>
         {gameTypes.map((game) => (
           <TouchableOpacity
@@ -144,7 +136,6 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
         ))}
       </View>
 
-      {/* Lista rezultata */}
       {filteredResults.length > 0 ? (
         <FlatList
           data={filteredResults}
@@ -165,7 +156,6 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
         </View>
       )}
 
-      {/* Dugme za brisanje */}
       {results.length > 0 && (
         <TouchableOpacity style={styles.clearButton} onPress={clearHistory}>
           <Text style={styles.clearButtonText}>Obriši Istoriju</Text>
