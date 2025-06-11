@@ -146,14 +146,27 @@ const MathQuizScreen = ({ navigation, route }) => {
   };
 
   const saveGameComplete = async (finalScore) => {
+    if (!db) {
+      console.error("saveGameComplete: DB instanca nije spremna.");
+      Alert.alert(
+        "Greška",
+        "Baza podataka nije inicijalizovana. Ne mogu sačuvati rezultat."
+      );
+      return;
+    }
     try {
-      await saveGameResult({
+      await saveGameResult(
         username,
-        game: "Matematički kviz",
-        score: finalScore,
-        time: gameTime,
-        date: new Date().toISOString(),
-      });
+        "Matematički kviz",
+        finalScore,
+        gameTime,
+        {
+          date: new Date().toISOString(),
+          totalQuestions: TOTAL_QUESTIONS,
+          correctAnswers: Math.round(finalScore / 15),
+        },
+        db
+      );
 
       const percentage = Math.round(
         (finalScore / (TOTAL_QUESTIONS * 15)) * 100

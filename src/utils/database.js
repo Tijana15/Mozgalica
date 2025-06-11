@@ -1,12 +1,10 @@
-// src/utils/database.js
-import * as SQLite from "expo-sqlite"; // Koristimo novu verziju
+import * as SQLite from "expo-sqlite";
 import { Alert } from "react-native";
 
 let db = null;
 
 const openDatabase = async () => {
   try {
-    // Uvek koristimo novu asinhronu metodu
     db = await SQLite.openDatabaseAsync("mozgalica.db");
     console.log('Baza podataka "mozgalica.db" je otvorena.');
     return db;
@@ -16,7 +14,7 @@ const openDatabase = async () => {
       "Greška",
       "Baza podataka nije dostupna. Molimo pokušajte ponovo."
     );
-    throw error; // Ponovo baci grešku da bi je uhvatio pozivalac
+    throw error;
   }
 };
 
@@ -26,7 +24,7 @@ export const initDatabase = async () => {
       await openDatabase();
     }
 
-    // Koristimo transakciju za kreiranje obe tabele
+    // transakcija za kreiranje obe tabele
     await db.execAsync(`
       PRAGMA journal_mode = WAL;
       CREATE TABLE IF NOT EXISTS users (
@@ -56,7 +54,6 @@ export const registerUser = async (username, password) => {
   try {
     const result = await db.runAsync(
       "INSERT INTO users (username, password) VALUES (?, ?);",
-      // Parametri se prosleđuju kao odvojeni argumenti
       username,
       password
     );
@@ -74,7 +71,6 @@ export const checkUserCredentials = async (username, password) => {
   try {
     const user = await db.getFirstAsync(
       "SELECT * FROM users WHERE username = ? AND password = ?;",
-      // Parametri kao odvojeni argumenti
       username,
       password
     );
@@ -90,16 +86,11 @@ export const saveGameResult = async (
   gameName,
   score,
   timeTaken = null,
-  additionalData = null,
-  db
+  additionalData = null
 ) => {
   try {
-    if (!db) {
-      console.error(
-        "Greška: db instanca nije proslijeđena funkciji saveGameResult."
-      );
-      throw new Error("Database instance is not available.");
-    }
+    const db = await getDb();
+
     const additionalDataString = additionalData
       ? JSON.stringify(additionalData)
       : null;
@@ -118,6 +109,8 @@ export const saveGameResult = async (
 
 export const getGameResults = async (filters = {}) => {
   try {
+    const db = await getDb();
+
     let query = "SELECT * FROM game_results WHERE 1=1";
     let params = [];
 
@@ -137,11 +130,12 @@ export const getGameResults = async (filters = {}) => {
       params.push(filters.limit);
     }
 
-    // Koristimo spread operator (...) da prosledimo niz kao odvojene argumente
-    const results = await db.getAllAsync(query, ...params);
+    const results = await db.getAllAsync(query, params);
 
     return results.map((result) => ({
       ...result,
+      game: result.game_name,
+      date: result.date_played,
       additional_data: result.additional_data
         ? JSON.parse(result.additional_data)
         : null,
@@ -150,4 +144,11 @@ export const getGameResults = async (filters = {}) => {
     console.error("Greška pri dobijanju rezultata:", error);
     throw error;
   }
+};
+
+export const getDb = async () => {
+  if (!db) {
+    db = await SQLite.openDatabaseAsync("mozgalica.db");
+  }
+  return db;
 };

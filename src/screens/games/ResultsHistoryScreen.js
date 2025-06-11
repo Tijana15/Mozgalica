@@ -12,7 +12,7 @@ import {
 import { getGameResults, clearGameResults } from "../../utils/database";
 
 const ResultsHistoryScreen = ({ navigation, route }) => {
-  const { username } = route.params;
+  const { username, db } = route.params;
   const [results, setResults] = useState([]);
   const [filteredResults, setFilteredResults] = useState([]);
   const [selectedGame, setSelectedGame] = useState("Sve");
@@ -24,18 +24,22 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
   const loadResults = useCallback(async () => {
     try {
       setIsLoading(true);
-      const userResults = await getGameResults(username);
+
+      const userResults = await getGameResults(db, { username });
+      console.log("Učitani rezultati:", userResults); // Debug log
+
       const sortedResults = userResults.sort(
         (a, b) => new Date(b.date) - new Date(a.date)
       );
       setResults(sortedResults);
+      console.log("Sortirani rezultati:", sortedResults); // Debug log
     } catch (error) {
       console.error("Greška pri učitavanju rezultata:", error);
       Alert.alert("Greška", "Nije moguće učitati rezultate.");
     } finally {
       setIsLoading(false);
     }
-  }, [username]);
+  }, [username, db]);
 
   useEffect(() => {
     loadResults();

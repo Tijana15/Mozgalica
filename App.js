@@ -24,7 +24,6 @@ export default function App() {
         setIsDbInitialized(true);
       } catch (e) {
         console.error("Aplikacija se ne može pokrenuti, greška baze:", e);
-        // Ovde možete prikazati poruku o grešci korisniku
       }
     };
 
@@ -42,18 +41,13 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Login"
         screenOptions={{
           headerStyle: { backgroundColor: "#6200ee" },
           headerTintColor: "#fff",
           headerTitleStyle: { fontWeight: "bold" },
         }}
       >
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{ title: "Prijava" }}
-        />
+        <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen
           name="Register"
           component={RegistrationScreen}
@@ -62,7 +56,11 @@ export default function App() {
         <Stack.Screen
           name="Home"
           component={HomeScreen}
-          options={{ title: "Mozgalica - Igre" }}
+          options={{
+            title: "Mozgalica - Igre",
+            headerLeft: null,
+            gestureEnabled: false,
+          }}
         />
         <Stack.Screen
           name="GameDetails"

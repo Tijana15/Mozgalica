@@ -22,7 +22,6 @@ const LoginScreen = ({ navigation }) => {
     try {
       const isValid = await checkUserCredentials(username, password);
       if (isValid) {
-        Alert.alert("Uspeh", "Uspešna prijava!");
         navigation.navigate("Home", { username });
       } else {
         Alert.alert("Greška", "Netačno korisničko ime ili lozinka.");

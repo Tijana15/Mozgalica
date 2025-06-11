@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert,
 } from "react-native";
 
 const HomeScreen = ({ navigation, route }) => {
@@ -44,18 +43,10 @@ const HomeScreen = ({ navigation, route }) => {
   };
 
   const handleLogout = () => {
-    Alert.alert("Odjava", "Da li ste sigurni da se želite odjaviti?", [
-      { text: "Ne", style: "cancel" },
-      {
-        text: "Da",
-        onPress: () => {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "Login" }],
-          });
-        },
-      },
-    ]);
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Login" }],
+    });
   };
 
   const handleResultsHistory = () => {
