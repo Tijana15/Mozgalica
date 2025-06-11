@@ -25,9 +25,9 @@ const GameDetailsScreen = ({ navigation, route }) => {
         "Svaki broj se može pojaviti samo jednom u 3x3 kvadratu",
       ],
       scoring:
-        "Bodovi se dodeljuju na osnovu brzine rešavanja i broja grešaka. Maksimalno 1000 bodova.",
+        "Bodovi se dodjeljuju na osnovu brzine rješavanja i broja grešaka. Maksimalno 1000 bodova.",
       youtubeUrl: "https://www.youtube.com/watch?v=C-_7F5fNPwU",
-      color: "#FF6B6B",
+      color: "#bacc81",
     },
     mathquiz: {
       title: "Matematički kviz",
@@ -43,7 +43,7 @@ const GameDetailsScreen = ({ navigation, route }) => {
       scoring:
         "Svaki tačan odgovor donosi 10 bodova. Bonus bodovi za brzinu odgovora.",
       youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      color: "#4ECDC4",
+      color: "#478c5c",
     },
     memorymatch: {
       title: "Memory Match",
@@ -59,7 +59,7 @@ const GameDetailsScreen = ({ navigation, route }) => {
       scoring:
         "Bodovi se dodeljuju na osnovu broja poteza i vremena. Manje poteza = više bodova.",
       youtubeUrl: "https://www.youtube.com/watch?v=example",
-      color: "#45B7D1",
+      color: "#013a20",
     },
   };
 
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   youtubeButton: {
-    backgroundColor: "#FF0000",
+    backgroundColor: "#cdd193",
     padding: 15,
     borderRadius: 10,
     alignItems: "center",

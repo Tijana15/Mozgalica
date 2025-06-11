@@ -60,31 +60,6 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
     setRefreshing(false);
   };
 
-  const clearHistory = () => {
-    Alert.alert(
-      "Brisanje istorije",
-      "Da li ste sigurni da želite da obrišete svu istoriju rezultata?",
-      [
-        { text: "Otkaži", style: "cancel" },
-        {
-          text: "Obriši",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await clearGameResults(username);
-              setResults([]);
-              setFilteredResults([]);
-              Alert.alert("Uspeh", "Istorija rezultata je uspešno obrisana.");
-            } catch (error) {
-              console.error("Greška pri brisanju:", error);
-              Alert.alert("Greška", "Nije moguće obrisati istoriju rezultata.");
-            }
-          },
-        },
-      ]
-    );
-  };
-
   const handleFilterChange = (game) => {
     setSelectedGame(game);
   };
@@ -159,12 +134,6 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
           <Text style={styles.noResultsText}>Nema rezultata za prikaz.</Text>
         </View>
       )}
-
-      {results.length > 0 && (
-        <TouchableOpacity style={styles.clearButton} onPress={clearHistory}>
-          <Text style={styles.clearButtonText}>Obriši Istoriju</Text>
-        </TouchableOpacity>
-      )}
     </View>
   );
 };
@@ -201,7 +170,7 @@ const styles = StyleSheet.create({
     margin: 4,
   },
   selectedFilter: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#bacc81",
   },
   filterButtonText: {
     fontSize: 14,
@@ -247,18 +216,6 @@ const styles = StyleSheet.create({
   noResultsText: {
     fontSize: 18,
     color: "#666",
-  },
-  clearButton: {
-    backgroundColor: "#FF3B30",
-    padding: 15,
-    borderRadius: 10,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  clearButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "bold",
   },
 });
 

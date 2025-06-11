@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
     color: "#666",
   },
   header: {
-    backgroundColor: "#6200ee",
+    backgroundColor: "#478c5c",
     padding: 20,
     alignItems: "center",
   },
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   selectedAnswer: {
-    borderColor: "#6200ee",
+    borderColor: "#478c5c",
     backgroundColor: "#f3e5f5",
   },
   correctAnswer: {
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   selectedAnswerText: {
-    color: "#6200ee",
+    color: "#478c5c",
   },
   correctAnswerText: {
     color: "#4caf50",
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
   actionButton: {
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: "#6200ee",
+    backgroundColor: "#478c5c",
     borderRadius: 8,
     minWidth: 100,
     alignItems: "center",

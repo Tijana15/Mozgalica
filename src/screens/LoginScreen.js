@@ -55,7 +55,6 @@ const LoginScreen = ({ navigation }) => {
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Prijavi se</Text>
       </TouchableOpacity>
-      {/* Dugme za navigaciju na ekran za registraciju */}
       <TouchableOpacity onPress={() => navigation.navigate("Register")}>
         <Text style={styles.linkText}>Nemate nalog? Registrujte se</Text>
       </TouchableOpacity>
@@ -69,13 +68,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#f5f5f4",
   },
   title: {
     fontSize: 28,
     fontWeight: "bold",
     marginBottom: 30,
-    color: "#333",
+    color: "#013a20",
   },
   input: {
     width: "100%",
@@ -88,7 +87,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   button: {
-    backgroundColor: "#6200ee",
+    backgroundColor: "#478c5c",
     padding: 15,
     borderRadius: 10,
     width: "100%",
@@ -106,7 +105,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   linkText: {
-    color: "#6200ee",
+    color: "#013a20",
     marginTop: 10,
     fontSize: 16,
   },

@@ -281,7 +281,7 @@ const MemoryMatchScreen = ({ navigation, route }) => {
               }
             >
               <Text style={styles.cardText}>
-                {card.isFlipped || card.isMatched ? card.symbol : "❓"}
+                {card.isFlipped || card.isMatched ? card.symbol : "?"}
               </Text>
             </TouchableOpacity>
           ))}
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f0f8ff",
   },
   header: {
-    backgroundColor: "#4a90e2",
+    backgroundColor: "#cdd193",
     padding: 20,
     alignItems: "center",
   },
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
   card: {
     width: 70,
     height: 70,
-    backgroundColor: "#6200ee",
+    backgroundColor: "#013a20",
     borderRadius: 8,
     margin: 5,
     justifyContent: "center",
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   flippedCard: {
     backgroundColor: "#e3f2fd",
     borderWidth: 2,
-    borderColor: "#4a90e2",
+    borderColor: "#478c5c",
   },
   matchedCard: {
     backgroundColor: "#e8f5e8",
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
   actionButton: {
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: "#4a90e2",
+    backgroundColor: "#478c5c",
     borderRadius: 8,
     minWidth: 100,
     alignItems: "center",

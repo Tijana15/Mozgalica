@@ -16,21 +16,21 @@ const HomeScreen = ({ navigation, route }) => {
       title: "Sudoku",
       description: "Logička igra popunjavanja brojeva",
       icon: "🔢",
-      color: "#FF6B6B",
+      color: "#bacc81",
     },
     {
       id: "mathquiz",
       title: "Matematički kviz",
       description: "Testiranje matematičkih znanja",
       icon: "🧮",
-      color: "#4ECDC4",
+      color: "#478c5c",
     },
     {
       id: "memorymatch",
       title: "Memory Match",
       description: "Igra memorije i koncentracije",
       icon: "🧠",
-      color: "#45B7D1",
+      color: "#013a20",
     },
   ];
 
@@ -58,7 +58,7 @@ const HomeScreen = ({ navigation, route }) => {
       <View style={styles.header}>
         <Text style={styles.welcomeText}>Dobrodošli, {username}!</Text>
         <Text style={styles.subtitle}>
-          Izaberite igru koju želite da igrate
+          Pronađi svoju omiljenu vježbu za mozak!
         </Text>
       </View>
 
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   historyButton: {
-    backgroundColor: "#6200ee",
+    backgroundColor: "#bbafe0",
     padding: 15,
     borderRadius: 10,
     alignItems: "center",
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   logoutButton: {
-    backgroundColor: "#d32f2f",
+    backgroundColor: "#bacc81",
     padding: 15,
     borderRadius: 10,
     alignItems: "center",

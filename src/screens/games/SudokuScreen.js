@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
   header: {
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#4a90e2",
+    backgroundColor: "#bacc81",
   },
   title: {
     fontSize: 28,
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#e8e8e8",
   },
   selectedCell: {
-    backgroundColor: "#ffeb3b",
+    backgroundColor: "#ecf87f",
   },
   bottomBorder: {
     borderBottomWidth: 3,
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#4a90e2",
+    backgroundColor: "#bacc81",
     justifyContent: "center",
     alignItems: "center",
     margin: 5,
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
   eraseButton: {
     paddingHorizontal: 20,
     paddingVertical: 10,
-    backgroundColor: "#f44336",
+    backgroundColor: "#013a20",
     borderRadius: 5,
   },
   eraseText: {
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   actionButton: {
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: "#4a90e2",
+    backgroundColor: "#478c5c",
     borderRadius: 8,
     minWidth: 80,
     alignItems: "center",
