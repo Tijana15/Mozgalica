@@ -26,7 +26,7 @@ const GameDetailsScreen = ({ navigation, route }) => {
       ],
       scoring:
         "Bodovi se dodjeljuju na osnovu brzine rješavanja i broja grešaka. Maksimalno 1000 bodova.",
-      youtubeUrl: "https://www.youtube.com/watch?v=C-_7F5fNPwU",
+      youtubeUrl: "https://www.youtube.com/watch?v=8zRXDsGydeQ",
       color: "#bacc81",
     },
     mathquiz: {
@@ -58,7 +58,7 @@ const GameDetailsScreen = ({ navigation, route }) => {
       ],
       scoring:
         "Bodovi se dodeljuju na osnovu broja poteza i vremena. Manje poteza = više bodova.",
-      youtubeUrl: "https://www.youtube.com/watch?v=example",
+      youtubeUrl: "https://www.youtube.com/watch?v=oFfYmrGeTPs",
       color: "#013a20",
     },
   };

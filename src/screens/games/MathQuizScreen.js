@@ -6,8 +6,10 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { saveGameResult } from "../../utils/database";
+import * as SQLite from "expo-sqlite";
 
 const MathQuizScreen = ({ navigation, route }) => {
   const { username } = route.params;
@@ -19,8 +21,33 @@ const MathQuizScreen = ({ navigation, route }) => {
   const [startTime, setStartTime] = useState(null);
   const [gameTime, setGameTime] = useState(0);
   const [isGameComplete, setIsGameComplete] = useState(false);
+  const [db, setDb] = useState(null);
+  const [isLoadingDb, setIsLoadingDb] = useState(true);
 
   const TOTAL_QUESTIONS = 10;
+
+  useEffect(() => {
+    async function openAndInitDb() {
+      try {
+        const database = await SQLite.openDatabaseAsync("mojaNovaBaza.db");
+        setDb(database);
+        console.log("MathQuizScreen: Baza podataka uspješno otvorena.");
+      } catch (error) {
+        console.error(
+          "MathQuizScreen: Greška pri otvaranju ili inicijalizaciji baze:",
+          error
+        );
+        Alert.alert(
+          "Greška baze",
+          "Nije moguće pristupiti bazi podataka. Pokušajte ponovo."
+        );
+      } finally {
+        setIsLoadingDb(false);
+      }
+    }
+
+    openAndInitDb();
+  }, []);
 
   const generateQuestions = () => {
     const newQuestions = [];
@@ -117,30 +144,28 @@ const MathQuizScreen = ({ navigation, route }) => {
   const handleAnswerPress = (answer) => {
     if (isAnswered) return;
 
-    setSelectedAnswer(answer);
     setIsAnswered(true);
+    setSelectedAnswer(answer);
 
     const isCorrect = answer === questions[currentQuestion].correctAnswer;
+    let newTotalScore = score; // Počinjemo od trenutnog skora
+
     if (isCorrect) {
       const points = questions[currentQuestion].difficulty === "hard" ? 20 : 10;
-      setScore((prevScore) => prevScore + points);
+      newTotalScore += points; // Odmah izračunavamo novi ukupan skor
+      setScore(newTotalScore); // Ažuriramo stanje za prikaz na ekranu
     }
 
     setTimeout(() => {
       if (currentQuestion + 1 < TOTAL_QUESTIONS) {
         setCurrentQuestion((prev) => prev + 1);
-        setSelectedAnswer(null);
         setIsAnswered(false);
+        setSelectedAnswer(null);
       } else {
+        // Kraj igre
         setIsGameComplete(true);
-        saveGameComplete(
-          score +
-            (isCorrect
-              ? questions[currentQuestion].difficulty === "hard"
-                ? 20
-                : 10
-              : 0)
-        );
+        // Pozivamo čuvanje sa ispravno izračunatim konačnim skorom
+        saveGameComplete(newTotalScore);
       }
     }, 1500);
   };
@@ -198,6 +223,15 @@ const MathQuizScreen = ({ navigation, route }) => {
     setGameTime(0);
     setIsGameComplete(false);
   };
+
+  if (isLoadingDb) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#478c5c" />
+        <Text style={styles.loadingText}>Učitavanje baze podataka...</Text>
+      </View>
+    );
+  }
 
   if (questions.length === 0) {
     return (

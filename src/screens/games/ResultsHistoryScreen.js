@@ -67,7 +67,10 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
   const renderResultItem = ({ item }) => (
     <View style={styles.resultItem}>
       <Text style={styles.gameText}>{item.game}</Text>
-      <Text style={styles.scoreText}>Rezultat: {item.score}</Text>
+      <View style={styles.detailsRow}>
+        <Text style={styles.usernameText}>{item.username}</Text>
+        <Text style={styles.scoreText}>Rezultat: {item.score}</Text>
+      </View>
       <Text style={styles.dateText}>
         {new Date(item.date).toLocaleDateString("sr-RS", {
           day: "2-digit",
@@ -91,7 +94,7 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Istorija Rezultata</Text>
+      <Text style={styles.title}>Istorija rezultata</Text>
 
       <View style={styles.filterContainer}>
         {gameTypes.map((game) => (
@@ -142,7 +145,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F7F7F7",
-    padding: 15,
+    padding: 10,
   },
   centered: {
     flex: 1,
@@ -159,12 +162,12 @@ const styles = StyleSheet.create({
   filterContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginBottom: 20,
+    marginBottom: 5,
     flexWrap: "wrap",
   },
   filterButton: {
     paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 23,
     borderRadius: 20,
     backgroundColor: "#E0E0E0",
     margin: 4,
@@ -173,7 +176,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#bacc81",
   },
   filterButtonText: {
-    fontSize: 14,
+    fontSize: 15,
     color: "#333",
   },
   selectedFilterText: {
@@ -216,6 +219,35 @@ const styles = StyleSheet.create({
   noResultsText: {
     fontSize: 18,
     color: "#666",
+  },
+  resultItem: {
+    backgroundColor: "#FFFFFF",
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  gameText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 10, 
+  },
+  detailsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between", 
+    alignItems: "center",           
+  },
+  usernameText: {
+    fontSize: 16,
+    color: "#478c5c",
   },
 });
 
