@@ -56,7 +56,9 @@ const LoginScreen = ({ navigation }) => {
         <Text style={styles.buttonText}>Prijavi se</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-        <Text style={styles.linkText}>Nemate nalog? Registrujte se</Text>
+        <Text style={styles.linkText1}>
+          Nemate nalog? <Text style={styles.linkText}>Registrujte se</Text>
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -105,6 +107,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   linkText: {
+    color: "#013a20",
+    marginTop: 10,
+    fontSize: 16,
+    textDecorationLine: "underline",
+  },
+  linkText1: {
     color: "#013a20",
     marginTop: 10,
     fontSize: 16,

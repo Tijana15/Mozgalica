@@ -8,6 +8,7 @@ import {
   Alert,
   RefreshControl,
   ActivityIndicator,
+  TextInput,
 } from "react-native";
 import { getGameResults, clearGameResults } from "../../utils/database";
 
@@ -16,6 +17,7 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
   const [results, setResults] = useState([]);
   const [filteredResults, setFilteredResults] = useState([]);
   const [selectedGame, setSelectedGame] = useState("Sve");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -45,14 +47,31 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
     loadResults();
   }, [loadResults]);
 
+  // Kombinovana logika za filtriranje i pretragu
   useEffect(() => {
-    if (selectedGame === "Sve") {
-      setFilteredResults(results);
-    } else {
-      const filtered = results.filter((result) => result.game === selectedGame);
-      setFilteredResults(filtered);
+    let filtered = results;
+
+    // Prvo filtriranje po igri
+    if (selectedGame !== "Sve") {
+      filtered = filtered.filter((result) => result.game === selectedGame);
     }
-  }, [results, selectedGame]);
+
+    // Zatim pretraga po korisničkom imenu ili broju poena
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter((result) => {
+        // Pretraga po korisničkom imenu
+        const usernameMatch = result.username.toLowerCase().includes(query);
+
+        // Pretraga po broju poena (konvertuj u string)
+        const scoreMatch = result.score.toString().includes(query);
+
+        return usernameMatch || scoreMatch;
+      });
+    }
+
+    setFilteredResults(filtered);
+  }, [results, selectedGame, searchQuery]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -62,6 +81,10 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
 
   const handleFilterChange = (game) => {
     setSelectedGame(game);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
   };
 
   const renderResultItem = ({ item }) => (
@@ -76,8 +99,6 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
           day: "2-digit",
           month: "2-digit",
           year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
         })}
       </Text>
     </View>
@@ -96,6 +117,7 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
     <View style={styles.container}>
       <Text style={styles.title}>Istorija rezultata</Text>
 
+      {/* Filter dugmići */}
       <View style={styles.filterContainer}>
         {gameTypes.map((game) => (
           <TouchableOpacity
@@ -118,11 +140,28 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
         ))}
       </View>
 
+      {/* Search bar */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Pretraga po korisničkom imenu ili broju poena..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholderTextColor="#888"
+          fontSize="14"
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity style={styles.clearButton} onPress={clearSearch}>
+            <Text style={styles.clearButtonText}>✕</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
       {filteredResults.length > 0 ? (
         <FlatList
           data={filteredResults}
           renderItem={renderResultItem}
-          keyExtractor={(item, index) => `${item.id}-${index}`} // Jedinstveni ključ
+          keyExtractor={(item, index) => `${item.id}-${index}`}
           contentContainerStyle={styles.listContent}
           refreshControl={
             <RefreshControl
@@ -134,7 +173,11 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
         />
       ) : (
         <View style={styles.centered}>
-          <Text style={styles.noResultsText}>Nema rezultata za prikaz.</Text>
+          <Text style={styles.noResultsText}>
+            {searchQuery.trim() !== ""
+              ? `Nema rezultata za "${searchQuery}"`
+              : "Nema rezultata za prikaz."}
+          </Text>
         </View>
       )}
     </View>
@@ -162,7 +205,7 @@ const styles = StyleSheet.create({
   filterContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginBottom: 5,
+    marginBottom: 15,
     flexWrap: "wrap",
   },
   filterButton: {
@@ -181,6 +224,38 @@ const styles = StyleSheet.create({
   },
   selectedFilterText: {
     color: "#FFFFFF",
+    fontWeight: "bold",
+  },
+  // Novi stilovi za search
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 15,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+  searchInput: {
+    flex: 1,
+    height: 45,
+    fontSize: 16,
+    color: "#333",
+  },
+  clearButton: {
+    padding: 5,
+    marginLeft: 10,
+  },
+  clearButtonText: {
+    fontSize: 18,
+    color: "#888",
     fontWeight: "bold",
   },
   listContent: {
@@ -204,11 +279,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     color: "#333",
+    marginBottom: 10,
+  },
+  detailsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  usernameText: {
+    fontSize: 16,
+    color: "#478c5c",
   },
   scoreText: {
     fontSize: 16,
     color: "#555",
-    marginTop: 5,
   },
   dateText: {
     fontSize: 12,
@@ -219,35 +303,6 @@ const styles = StyleSheet.create({
   noResultsText: {
     fontSize: 18,
     color: "#666",
-  },
-  resultItem: {
-    backgroundColor: "#FFFFFF",
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  gameText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 10, 
-  },
-  detailsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between", 
-    alignItems: "center",           
-  },
-  usernameText: {
-    fontSize: 16,
-    color: "#478c5c",
   },
 });
 
