@@ -6,29 +6,32 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
+import { useTranslation } from "react-i18next"; // 1. Import hook-a
 
 const HomeScreen = ({ navigation, route }) => {
+  const { t } = useTranslation(); // 2. Poziv hook-a
   const { username } = route.params || {};
 
+  // Lista igara sada koristi ključeve za prevod
   const games = [
     {
       id: "sudoku",
-      title: "Sudoku",
-      description: "Logička igra popunjavanja brojeva",
+      titleKey: "sudoku",
+      descriptionKey: "sudokuDescription",
       icon: "🔢",
       color: "#bacc81",
     },
     {
       id: "mathquiz",
-      title: "Matematički kviz",
-      description: "Testiranje matematičkih znanja",
+      titleKey: "mathQuiz",
+      descriptionKey: "mathQuizDescription",
       icon: "🧮",
       color: "#478c5c",
     },
     {
       id: "memorymatch",
-      title: "Memory Match",
-      description: "Igra memorije i koncentracije",
+      titleKey: "memoryMatch",
+      descriptionKey: "memoryMatchDescription",
       icon: "🧠",
       color: "#013a20",
     },
@@ -37,7 +40,7 @@ const HomeScreen = ({ navigation, route }) => {
   const handleGamePress = (game) => {
     navigation.navigate("GameDetails", {
       gameId: game.id,
-      gameTitle: game.title,
+      gameTitle: t(game.titleKey), // Prosleđujemo preveden naslov
       username: username,
     });
   };
@@ -53,13 +56,18 @@ const HomeScreen = ({ navigation, route }) => {
     navigation.navigate("ResultsHistory", { username });
   };
 
+  const handleSettings = () => {
+    navigation.navigate("Settings", { username });
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.welcomeText}>Dobrodošli, {username}!</Text>
-        <Text style={styles.subtitle}>
-          Pronađi svoju omiljenu vježbu za mozak!
+        {/* 3. Korišćenje prevoda */}
+        <Text style={styles.welcomeText}>
+          {t("welcome")}, {username}!
         </Text>
+        <Text style={styles.subtitle}>{t("favoriteExcersize")}</Text>
       </View>
 
       <View style={styles.gamesContainer}>
@@ -70,8 +78,8 @@ const HomeScreen = ({ navigation, route }) => {
             onPress={() => handleGamePress(game)}
           >
             <Text style={styles.gameIcon}>{game.icon}</Text>
-            <Text style={styles.gameTitle}>{game.title}</Text>
-            <Text style={styles.gameDescription}>{game.description}</Text>
+            <Text style={styles.gameTitle}>{t(game.titleKey)}</Text>
+            <Text style={styles.gameDescription}>{t(game.descriptionKey)}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -81,11 +89,18 @@ const HomeScreen = ({ navigation, route }) => {
           style={styles.historyButton}
           onPress={handleResultsHistory}
         >
-          <Text style={styles.buttonText}>📊 Istorija rezultata</Text>
+          <Text style={styles.buttonText}>📊 {t("resultHistory")}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.settingsButton}
+          onPress={handleSettings}
+        >
+          <Text style={styles.buttonText}>⚙️ {t("settingsTitle")}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.buttonText}>🚪 Odjavi se</Text>
+          <Text style={styles.buttonText}>🚪 {t("signOut")}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -155,6 +170,18 @@ const styles = StyleSheet.create({
   },
   historyButton: {
     backgroundColor: "#bbafe0",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  settingsButton: {
+    backgroundColor: "#9c88cc",
     padding: 15,
     borderRadius: 10,
     alignItems: "center",

@@ -11,9 +11,10 @@ import {
 } from "react-native";
 import { saveGameResult } from "../../utils/database";
 import * as SQLite from "expo-sqlite";
+import { useTranslation } from "react-i18next"; // 1. Import hook-a
 
 const SudokuScreen = ({ navigation, route }) => {
-  // SVI HOOK-OVI MORAJU BITI NA VRHU KOMPONENTE
+  const { t } = useTranslation(); // 2. Poziv hook-a
   const { username } = route.params;
 
   // Svi useState pozivi
@@ -27,8 +28,7 @@ const SudokuScreen = ({ navigation, route }) => {
   const [db, setDb] = useState(null);
   const [isLoadingDb, setIsLoadingDb] = useState(true);
 
-  // Svi useEffect pozivi
-  // 1. Hook za otvaranje baze (PREMEŠTEN NA ISPRAVNO MESTO)
+  // useEffect za otvaranje baze
   useEffect(() => {
     async function openAndInitDb() {
       try {
@@ -40,10 +40,7 @@ const SudokuScreen = ({ navigation, route }) => {
           "SudokuScreen: Greška pri otvaranju ili inicijalizaciji baze:",
           error
         );
-        Alert.alert(
-          "Greška baze",
-          "Nije moguće pristupiti bazi podataka. Pokušajte ponovo."
-        );
+        Alert.alert(t("dbErrorTitle"), t("dbErrorLoad"));
       } finally {
         setIsLoadingDb(false);
       }
@@ -51,15 +48,15 @@ const SudokuScreen = ({ navigation, route }) => {
     openAndInitDb();
   }, []);
 
-  // 2. Hook za inicijalizaciju igre
+  // useEffect za inicijalizaciju igre
   useEffect(() => {
     const puzzle = generateSudokuPuzzle();
     setSudokuGrid(puzzle);
-    setOriginalGrid(puzzle.map((row) => [...row])); // Deep copy
+    setOriginalGrid(puzzle.map((row) => [...row]));
     setStartTime(Date.now());
   }, []);
 
-  // 3. Hook za tajmer
+  // useEffect za tajmer
   useEffect(() => {
     let interval;
     if (startTime && !isGameComplete) {
@@ -70,7 +67,6 @@ const SudokuScreen = ({ navigation, route }) => {
     return () => clearInterval(interval);
   }, [startTime, isGameComplete]);
 
-  // OBIČNE FUNKCIJE IDU POSLE SVIH HOOK-OVA
   const generateSudokuPuzzle = () => {
     const completeGrid = [
       [5, 3, 4, 6, 7, 8, 9, 1, 2],
@@ -83,15 +79,14 @@ const SudokuScreen = ({ navigation, route }) => {
       [2, 8, 7, 4, 1, 9, 6, 3, 5],
       [3, 4, 5, 2, 8, 6, 1, 7, 9],
     ];
-
-    const puzzleGrid = completeGrid.map((row) => [...row]); // Deep copy
-    const cellsToRemove = 40;
-
-    for (let i = 0; i < cellsToRemove; i++) {
+    const puzzleGrid = completeGrid.map((row) => [...row]);
+    let cellsToRemove = 40;
+    while (cellsToRemove > 0) {
       const row = Math.floor(Math.random() * 9);
       const col = Math.floor(Math.random() * 9);
       if (puzzleGrid[row][col] !== 0) {
         puzzleGrid[row][col] = 0;
+        cellsToRemove--;
       }
     }
     return puzzleGrid;
@@ -106,12 +101,8 @@ const SudokuScreen = ({ navigation, route }) => {
   };
 
   const isValidMove = (grid, row, col, num) => {
-    for (let i = 0; i < 9; i++) {
-      if (grid[row][i] === num) return false;
-    }
-    for (let i = 0; i < 9; i++) {
-      if (grid[i][col] === num) return false;
-    }
+    for (let i = 0; i < 9; i++) if (grid[row][i] === num) return false;
+    for (let i = 0; i < 9; i++) if (grid[i][col] === num) return false;
     const startRow = Math.floor(row / 3) * 3;
     const startCol = Math.floor(col / 3) * 3;
     for (let i = startRow; i < startRow + 3; i++) {
@@ -122,14 +113,7 @@ const SudokuScreen = ({ navigation, route }) => {
     return true;
   };
 
-  const checkGameComplete = (grid) => {
-    for (let i = 0; i < 9; i++) {
-      for (let j = 0; j < 9; j++) {
-        if (grid[i][j] === 0) return false;
-      }
-    }
-    return true;
-  };
+  const checkGameComplete = (grid) => !grid.some((row) => row.includes(0));
 
   const handleCellPress = (row, col) => {
     if (originalGrid[row][col] !== 0) return;
@@ -142,64 +126,44 @@ const SudokuScreen = ({ navigation, route }) => {
       setHighlightedNumber(highlightedNumber === num ? null : num);
       return;
     }
-
     const { row, col } = selectedCell;
-    const newGrid = sudokuGrid.map((r) => [...r]); // Pravilno kopiranje 2D niza
-
+    if (originalGrid[row][col] !== 0) return;
+    const newGrid = sudokuGrid.map((r) => [...r]);
     if (num === 0 || isValidMove(newGrid, row, col, num)) {
       newGrid[row][col] = num;
       setSudokuGrid(newGrid);
-
-      if (num !== 0) {
-        setHighlightedNumber(num);
-      } else {
-        setHighlightedNumber(null);
-      }
-
+      if (num !== 0) setHighlightedNumber(num);
+      else setHighlightedNumber(null);
       if (checkGameComplete(newGrid)) {
         setIsGameComplete(true);
         saveGameComplete();
       }
     } else {
-      Alert.alert(
-        "Nevaljan potez",
-        "Ovaj broj nije dozvoljen na ovoj poziciji!"
-      );
+      Alert.alert(t("invalidMoveTitle"), t("invalidMoveMessage"));
     }
   };
 
   const saveGameComplete = async () => {
     if (!db) {
-      console.error("saveGameComplete: DB instanca nije spremna.");
-      Alert.alert(
-        "Greška",
-        "Baza podataka nije inicijalizovana. Ne mogu sačuvati rezultat."
-      );
+      Alert.alert(t("errorTitle"), t("dbNotReady"));
       return;
     }
     const score = Math.max(1000 - gameTime, 100);
     try {
-      // ISPRAVLJEN POZIV FUNKCIJE
-      await saveGameResult(
-        username,
-        "Sudoku",
-        score,
-        gameTime,
-        { details: `Finished in ${gameTime}s` }, // Primer dodatnih podataka
-        db // Prosleđivanje DB instance
-      );
-
+      await saveGameResult(username, "Sudoku", score, gameTime, {}, db);
       Alert.alert(
-        "Čestitamo!",
-        `Rešili ste Sudoku za ${formatTime(gameTime)}!\nVaš skor: ${score}`,
+        t("congratsTitle"),
+        t("congratsMessageSudoku", {
+          time: formatTime(gameTime),
+          score: score,
+        }),
         [
-          { text: "Nova igra", onPress: () => restartGame() },
-          { text: "Nazad", onPress: () => navigation.goBack() },
+          { text: t("newGame"), onPress: () => restartGame() },
+          { text: t("back"), onPress: () => navigation.goBack() },
         ]
       );
     } catch (error) {
-      console.error("Greška pri čuvanju rezultata:", error);
-      Alert.alert("Greška", `Nije moguće sačuvati rezultat: ${error.message}`);
+      Alert.alert(t("errorTitle"), t("saveError"));
     }
   };
 
@@ -215,20 +179,16 @@ const SudokuScreen = ({ navigation, route }) => {
   };
 
   const getHint = () => {
-    // ...
+    /* ... */
   };
+  const shouldHighlightCell = (row, col) =>
+    highlightedNumber ? sudokuGrid[row][col] === highlightedNumber : false;
 
-  const shouldHighlightCell = (row, col) => {
-    if (!highlightedNumber) return false;
-    return sudokuGrid[row][col] === highlightedNumber;
-  };
-
-  // JSX počinje tek posle svih funkcija i hook-ova
   if (isLoadingDb) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" color="#bacc81" />
-        <Text style={{ marginTop: 10 }}>Učitavanje baze podataka...</Text>
+        <Text style={{ marginTop: 10 }}>{t("loadingDb")}</Text>
       </View>
     );
   }
@@ -236,9 +196,13 @@ const SudokuScreen = ({ navigation, route }) => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Sudoku</Text>
-        <Text style={styles.player}>Igrač: {username}</Text>
-        <Text style={styles.timer}>Vreme: {formatTime(gameTime)}</Text>
+        <Text style={styles.title}>{t("sudoku")}</Text>
+        <Text style={styles.player}>
+          {t("player")} {username}
+        </Text>
+        <Text style={styles.timer}>
+          {t("time")}: {formatTime(gameTime)}
+        </Text>
       </View>
 
       <View style={styles.gridContainer}>
@@ -281,7 +245,7 @@ const SudokuScreen = ({ navigation, route }) => {
 
       <View style={styles.numbersContainer}>
         <Text style={styles.numbersTitle}>
-          {selectedCell ? "Izaberite broj:" : "Pritisni broj da ga označiš:"}
+          {selectedCell ? t("selectNumber") : t("pressNumberToSelect")}
         </Text>
         <View style={styles.numbersRow}>
           {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
@@ -310,7 +274,7 @@ const SudokuScreen = ({ navigation, route }) => {
           onPress={() => handleNumberPress(0)}
           disabled={!selectedCell || isGameComplete}
         >
-          <Text style={styles.eraseText}>Obriši</Text>
+          <Text style={styles.eraseText}>{t("delete")}</Text>
         </TouchableOpacity>
       </View>
 
@@ -320,16 +284,16 @@ const SudokuScreen = ({ navigation, route }) => {
           onPress={getHint}
           disabled={isGameComplete}
         >
-          <Text style={styles.actionButtonText}>Hint</Text>
+          <Text style={styles.actionButtonText}>{t("hint")}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionButton} onPress={restartGame}>
-          <Text style={styles.actionButtonText}>Nova igra</Text>
+          <Text style={styles.actionButtonText}>{t("newGame")}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.actionButton, styles.backButton]}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.actionButtonText}>Nazad</Text>
+          <Text style={styles.actionButtonText}>{t("back")}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -337,46 +301,19 @@ const SudokuScreen = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f0f0f0",
-  },
-  header: {
-    alignItems: "center",
-    padding: 20,
-    backgroundColor: "#bacc81",
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "white",
-    marginBottom: 5,
-  },
-  player: {
-    fontSize: 16,
-    color: "white",
-    marginBottom: 5,
-  },
-  timer: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "white",
-  },
+  container: { flex: 1, backgroundColor: "#f0f0f0" },
+  header: { alignItems: "center", padding: 20, backgroundColor: "#bacc81" },
+  title: { fontSize: 28, fontWeight: "bold", color: "white", marginBottom: 5 },
+  player: { fontSize: 16, color: "white", marginBottom: 5 },
+  timer: { fontSize: 18, fontWeight: "bold", color: "white" },
   gridContainer: {
     alignSelf: "center",
     marginTop: 20,
     marginBottom: 20,
     backgroundColor: "#333",
     padding: 2,
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
   },
-  row: {
-    flexDirection: "row",
-  },
+  row: { flexDirection: "row" },
   cell: {
     width: 35,
     height: 35,
@@ -385,40 +322,17 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     justifyContent: "center",
     alignItems: "center",
+    margin: 1,
   },
-  originalCell: {
-    backgroundColor: "#e8e8e8",
-  },
-  selectedCell: {
-    backgroundColor: "#ecf87f",
-  },
-  highlightedCell: {
-    backgroundColor: "#a8d8a8",
-  },
-  bottomBorder: {
-    borderBottomWidth: 3,
-    borderBottomColor: "#333",
-  },
-  rightBorder: {
-    borderRightWidth: 3,
-    borderRightColor: "#333",
-  },
-  cellText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#2196f3",
-  },
-  originalCellText: {
-    color: "#333",
-  },
-  highlightedCellText: {
-    color: "#2e7d32",
-    fontWeight: "900",
-  },
-  numbersContainer: {
-    alignItems: "center",
-    marginBottom: 20,
-  },
+  originalCell: { backgroundColor: "#e8e8e8" },
+  selectedCell: { backgroundColor: "#ecf87f" },
+  highlightedCell: { backgroundColor: "#a8d8a8" },
+  bottomBorder: { borderBottomWidth: 3, borderBottomColor: "#333" },
+  rightBorder: { borderRightWidth: 3, borderRightColor: "#333" },
+  cellText: { fontSize: 18, fontWeight: "bold", color: "#2196f3" },
+  originalCellText: { color: "#333" },
+  highlightedCellText: { color: "#2e7d32", fontWeight: "900" },
+  numbersContainer: { alignItems: "center", marginBottom: 20 },
   numbersTitle: {
     fontSize: 16,
     fontWeight: "bold",
@@ -439,34 +353,21 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     margin: 5,
-    elevation: 3,
   },
   selectedNumberButton: {
     backgroundColor: "#478c5c",
     borderWidth: 2,
     borderColor: "#2e7d32",
   },
-  numberText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "white",
-  },
-  selectedNumberText: {
-    color: "#fff",
-    fontWeight: "900",
-  },
+  numberText: { fontSize: 18, fontWeight: "bold", color: "white" },
+  selectedNumberText: { color: "#fff", fontWeight: "900" },
   eraseButton: {
     paddingHorizontal: 20,
     paddingVertical: 10,
     backgroundColor: "#013a20",
     borderRadius: 5,
-    elevation: 3,
   },
-  eraseText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "white",
-  },
+  eraseText: { fontSize: 16, fontWeight: "bold", color: "white" },
   buttonsContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -480,16 +381,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     minWidth: 80,
     alignItems: "center",
-    elevation: 3,
   },
-  backButton: {
-    backgroundColor: "#666",
-  },
-  actionButtonText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "white",
-  },
+  backButton: { backgroundColor: "#666" },
+  actionButtonText: { fontSize: 16, fontWeight: "bold", color: "white" },
 });
 
 export default SudokuScreen;

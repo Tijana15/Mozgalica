@@ -10,9 +10,11 @@ import {
   ActivityIndicator,
   TextInput,
 } from "react-native";
-import { getGameResults, clearGameResults } from "../../utils/database";
+import { getGameResults } from "../../utils/database";
+import { useTranslation } from "react-i18next"; // 1. Import hook-a
 
 const ResultsHistoryScreen = ({ navigation, route }) => {
+  const { t } = useTranslation(); // 2. Poziv hook-a
   const { username, db } = route.params;
   const [results, setResults] = useState([]);
   const [filteredResults, setFilteredResults] = useState([]);
@@ -21,63 +23,55 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const gameTypes = ["Sve", "Sudoku", "Matematički kviz", "Memory Match"];
+  // Modifikovano za prevođenje
+  const gameTypes = [
+    { key: "allFilter", value: "Sve" },
+    { key: "sudoku", value: "Sudoku" },
+    { key: "mathQuiz", value: "Matematički kviz" },
+    { key: "memoryMatch", value: "Memory Match" },
+  ];
 
   const loadResults = useCallback(async () => {
     try {
       setIsLoading(true);
-
       const userResults = await getGameResults(db, { username });
-      console.log("Učitani rezultati:", userResults); // Debug log
-
       const sortedResults = userResults.sort(
         (a, b) => new Date(b.date) - new Date(a.date)
       );
       setResults(sortedResults);
-      console.log("Sortirani rezultati:", sortedResults); // Debug log
     } catch (error) {
       console.error("Greška pri učitavanju rezultata:", error);
-      Alert.alert("Greška", "Nije moguće učitati rezultate.");
+      Alert.alert(t("errorTitle"), t("loadResultsError"));
     } finally {
       setIsLoading(false);
     }
-  }, [username, db]);
+  }, [username, db, t]);
 
   useEffect(() => {
     loadResults();
   }, [loadResults]);
 
-  // Kombinovana logika za filtriranje i pretragu
   useEffect(() => {
     let filtered = results;
-
-    // Prvo filtriranje po igri
     if (selectedGame !== "Sve") {
       filtered = filtered.filter((result) => result.game === selectedGame);
     }
-
-    // Zatim pretraga po korisničkom imenu ili broju poena
     if (searchQuery.trim() !== "") {
       const query = searchQuery.toLowerCase().trim();
       filtered = filtered.filter((result) => {
-        // Pretraga po korisničkom imenu
         const usernameMatch = result.username.toLowerCase().includes(query);
-
-        // Pretraga po broju poena (konvertuj u string)
         const scoreMatch = result.score.toString().includes(query);
-
         return usernameMatch || scoreMatch;
       });
     }
-
     setFilteredResults(filtered);
   }, [results, selectedGame, searchQuery]);
 
-  const onRefresh = async () => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await loadResults();
     setRefreshing(false);
-  };
+  }, [loadResults]);
 
   const handleFilterChange = (game) => {
     setSelectedGame(game);
@@ -89,10 +83,12 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
 
   const renderResultItem = ({ item }) => (
     <View style={styles.resultItem}>
-      <Text style={styles.gameText}>{item.game}</Text>
+      <Text style={styles.gameText}>{t(item.game_name) || item.game}</Text>
       <View style={styles.detailsRow}>
         <Text style={styles.usernameText}>{item.username}</Text>
-        <Text style={styles.scoreText}>Rezultat: {item.score}</Text>
+        <Text style={styles.scoreText}>
+          {t("result")}: {item.score}
+        </Text>
       </View>
       <Text style={styles.dateText}>
         {new Date(item.date).toLocaleDateString("sr-RS", {
@@ -108,47 +104,44 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text>Učitavanje rezultata...</Text>
+        <Text>{t("loadingResults")}</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Istorija rezultata</Text>
+      <Text style={styles.title}>{t("resultHistory")}</Text>
 
-      {/* Filter dugmići */}
       <View style={styles.filterContainer}>
         {gameTypes.map((game) => (
           <TouchableOpacity
-            key={game}
+            key={game.key}
             style={[
               styles.filterButton,
-              selectedGame === game && styles.selectedFilter,
+              selectedGame === game.value && styles.selectedFilter,
             ]}
-            onPress={() => handleFilterChange(game)}
+            onPress={() => handleFilterChange(game.value)}
           >
             <Text
               style={[
                 styles.filterButtonText,
-                selectedGame === game && styles.selectedFilterText,
+                selectedGame === game.value && styles.selectedFilterText,
               ]}
             >
-              {game}
+              {t(game.key)}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* Search bar */}
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Pretraga po korisničkom imenu ili broju poena..."
+          placeholder={t("filterPlaceholder")}
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholderTextColor="#888"
-          fontSize="14"
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity style={styles.clearButton} onPress={clearSearch}>
@@ -175,8 +168,8 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
         <View style={styles.centered}>
           <Text style={styles.noResultsText}>
             {searchQuery.trim() !== ""
-              ? `Nema rezultata za "${searchQuery}"`
-              : "Nema rezultata za prikaz."}
+              ? t("noResultsFor", { query: searchQuery })
+              : t("noResultsToShow")}
           </Text>
         </View>
       )}
@@ -185,16 +178,8 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F7F7F7",
-    padding: 10,
-  },
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  container: { flex: 1, backgroundColor: "#F7F7F7", padding: 10 },
+  centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   title: {
     fontSize: 28,
     fontWeight: "bold",
@@ -215,18 +200,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#E0E0E0",
     margin: 4,
   },
-  selectedFilter: {
-    backgroundColor: "#bacc81",
-  },
-  filterButtonText: {
-    fontSize: 15,
-    color: "#333",
-  },
-  selectedFilterText: {
-    color: "#FFFFFF",
-    fontWeight: "bold",
-  },
-  // Novi stilovi za search
+  selectedFilter: { backgroundColor: "#bacc81" },
+  filterButtonText: { fontSize: 15, color: "#333" },
+  selectedFilterText: { color: "#FFFFFF", fontWeight: "bold" },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -234,45 +210,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 10,
     paddingHorizontal: 15,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
     elevation: 3,
   },
-  searchInput: {
-    flex: 1,
-    height: 45,
-    fontSize: 16,
-    color: "#333",
-  },
-  clearButton: {
-    padding: 5,
-    marginLeft: 10,
-  },
-  clearButtonText: {
-    fontSize: 18,
-    color: "#888",
-    fontWeight: "bold",
-  },
-  listContent: {
-    paddingBottom: 20,
-  },
+  searchInput: { flex: 1, height: 45, fontSize: 14, color: "#333" },
+  clearButton: { padding: 5, marginLeft: 10 },
+  clearButtonText: { fontSize: 18, color: "#888", fontWeight: "bold" },
+  listContent: { paddingBottom: 20 },
   resultItem: {
     backgroundColor: "#FFFFFF",
     padding: 15,
     borderRadius: 10,
     marginBottom: 10,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
     elevation: 5,
   },
   gameText: {
@@ -286,24 +234,10 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  usernameText: {
-    fontSize: 16,
-    color: "#478c5c",
-  },
-  scoreText: {
-    fontSize: 16,
-    color: "#555",
-  },
-  dateText: {
-    fontSize: 12,
-    color: "#888",
-    marginTop: 8,
-    textAlign: "right",
-  },
-  noResultsText: {
-    fontSize: 18,
-    color: "#666",
-  },
+  usernameText: { fontSize: 16, color: "#478c5c" },
+  scoreText: { fontSize: 16, color: "#555" },
+  dateText: { fontSize: 12, color: "#888", marginTop: 8, textAlign: "right" },
+  noResultsText: { fontSize: 18, color: "#666" },
 });
 
 export default ResultsHistoryScreen;

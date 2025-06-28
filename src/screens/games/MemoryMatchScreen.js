@@ -10,8 +10,10 @@ import {
 } from "react-native";
 import { saveGameResult } from "../../utils/database";
 import * as SQLite from "expo-sqlite";
+import { useTranslation } from "react-i18next"; // 1. Import hook-a
 
 const MemoryMatchScreen = ({ navigation, route }) => {
+  const { t } = useTranslation(); // 2. Poziv hook-a
   const { username } = route.params;
   const [db, setDb] = useState(null);
   const [isLoadingDb, setIsLoadingDb] = useState(true);
@@ -25,7 +27,6 @@ const MemoryMatchScreen = ({ navigation, route }) => {
   const [isGameComplete, setIsGameComplete] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const GRID_SIZE = 4; // 4x4 grid = 16 cards (8 pairs)
   const cardSymbols = ["🎯", "🎮", "🎲", "🎭", "🎨", "🎪", "🎫", "🎬"];
 
   useEffect(() => {
@@ -34,47 +35,25 @@ const MemoryMatchScreen = ({ navigation, route }) => {
         const database = await SQLite.openDatabaseAsync("mojaNovaBaza.db");
         setDb(database);
         console.log("MemoryMatchScreen: Baza podataka uspješno otvorena.");
-
         await database.execAsync(`
           CREATE TABLE IF NOT EXISTS game_results (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL,
-            game_name TEXT NOT NULL,
-            score INTEGER NOT NULL,
-            time_taken INTEGER,
-            additional_data TEXT,
+            id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL, game_name TEXT NOT NULL,
+            score INTEGER NOT NULL, time_taken INTEGER, additional_data TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
           );
         `);
-        console.log(
-          'MemoryMatchScreen: Tabela "game_results" kreirana ili već postoji.'
-        );
       } catch (error) {
-        console.error(
-          "MemoryMatchScreen: Greška pri otvaranju ili inicijalizaciji baze:",
-          error
-        );
-        Alert.alert(
-          "Greška baze",
-          "Nije moguće pristupiti bazi podataka. Pokušajte ponovo."
-        );
+        console.error("MemoryMatchScreen: Greška pri otvaranju baze:", error);
+        Alert.alert(t("dbErrorTitle"), t("dbErrorLoad"));
       } finally {
         setIsLoadingDb(false);
       }
     }
-
     openAndInitDb();
-
-    return () => {
-      if (db) {
-        // db.closeAsync(); // SQLite se često ne zatvara eksplicitno, ali je dobra praksa
-      }
-    };
   }, []);
 
   useEffect(() => {
-    const newCards = generateCards();
-    setCards(newCards);
+    setCards(generateCards());
     setStartTime(Date.now());
   }, []);
 
@@ -112,13 +91,11 @@ const MemoryMatchScreen = ({ navigation, route }) => {
 
   const handleCardPress = (cardId) => {
     if (isLoadingDb || isProcessing || flippedCards.length >= 2) return;
-
     const card = cards.find((c) => c.id === cardId);
     if (card.isFlipped || card.isMatched) return;
 
     const newFlippedCards = [...flippedCards, cardId];
     setFlippedCards(newFlippedCards);
-
     setCards((prevCards) =>
       prevCards.map((c) => (c.id === cardId ? { ...c, isFlipped: true } : c))
     );
@@ -126,16 +103,13 @@ const MemoryMatchScreen = ({ navigation, route }) => {
     if (newFlippedCards.length === 2) {
       setIsProcessing(true);
       setMoves((prev) => prev + 1);
-
       const [firstCardId, secondCardId] = newFlippedCards;
       const firstCard = cards.find((c) => c.id === firstCardId);
       const secondCard = cards.find((c) => c.id === secondCardId);
-
       setTimeout(() => {
         if (firstCard.symbol === secondCard.symbol) {
           const newMatchedCards = [...matchedCards, firstCardId, secondCardId];
           setMatchedCards(newMatchedCards);
-
           setCards((prevCards) =>
             prevCards.map((c) =>
               c.id === firstCardId || c.id === secondCardId
@@ -143,7 +117,6 @@ const MemoryMatchScreen = ({ navigation, route }) => {
                 : c
             )
           );
-
           if (newMatchedCards.length === cards.length) {
             setIsGameComplete(true);
             saveGameComplete();
@@ -157,7 +130,6 @@ const MemoryMatchScreen = ({ navigation, route }) => {
             )
           );
         }
-
         setFlippedCards([]);
         setIsProcessing(false);
       }, 1000);
@@ -166,50 +138,40 @@ const MemoryMatchScreen = ({ navigation, route }) => {
 
   const saveGameComplete = async () => {
     if (!db) {
-      console.error("saveGameComplete: DB instanca nije spremna.");
-      Alert.alert(
-        "Greška",
-        "Baza podataka nije inicijalizovana. Ne mogu sačuvati rezultat."
-      );
+      Alert.alert(t("errorTitle"), t("dbNotReady"));
       return;
     }
-
     try {
       const timeBonus = Math.max(300 - gameTime, 0);
       const moveBonus = Math.max(200 - moves * 10, 0);
       const totalScore = timeBonus + moveBonus + 100;
-
       await saveGameResult(
         username,
-        "Memory Match",
+        t("memoryMatch"),
         totalScore,
         gameTime,
-        { date: new Date().toISOString(), moves: moves },
+        { moves },
         db
       );
-
       Alert.alert(
-        "Čestitamo!",
-        `Igra završena!\nVreme: ${formatTime(
-          gameTime
-        )}\nPotezi: ${moves}\nSkor: ${totalScore}`,
+        t("congratsTitle"),
+        t("gameFinishedMessageMemory", {
+          time: formatTime(gameTime),
+          moves: moves,
+          score: totalScore,
+        }),
         [
-          { text: "Nova igra", onPress: () => restartGame() },
-          { text: "Nazad", onPress: () => navigation.goBack() },
+          { text: t("newGame"), onPress: () => restartGame() },
+          { text: t("back"), onPress: () => navigation.goBack() },
         ]
       );
     } catch (error) {
-      console.error("Greška pri čuvanju rezultata:", error);
-      Alert.alert(
-        "Greška",
-        `Nije moguće sačuvati rezultat: ${error.message || error}`
-      );
+      Alert.alert(t("errorTitle"), `${t("saveError")}: ${error.message || ""}`);
     }
   };
 
   const restartGame = () => {
-    const newCards = generateCards();
-    setCards(newCards);
+    setCards(generateCards());
     setFlippedCards([]);
     setMatchedCards([]);
     setMoves(0);
@@ -223,18 +185,9 @@ const MemoryMatchScreen = ({ navigation, route }) => {
 
   if (isLoadingDb) {
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "#f0f8ff",
-        }}
-      >
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#4a90e2" />
-        <Text style={{ marginTop: 10, fontSize: 16 }}>
-          Učitavanje baze podataka...
-        </Text>
+        <Text style={{ marginTop: 10, fontSize: 16 }}>{t("loadingDb")}</Text>
       </View>
     );
   }
@@ -242,20 +195,26 @@ const MemoryMatchScreen = ({ navigation, route }) => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Memory Match</Text>
-        <Text style={styles.player}>Igrač: {username}</Text>
+        <Text style={styles.title}>{t("memoryMatch")}</Text>
+        <Text style={styles.player}>
+          {t("player")} {username}
+        </Text>
         <View style={styles.statsContainer}>
-          <Text style={styles.statsText}>Vreme: {formatTime(gameTime)}</Text>
-          <Text style={styles.statsText}>Potezi: {moves}</Text>
           <Text style={styles.statsText}>
-            Parovi: {matchedCards.length / 2}/8
+            {t("time")}: {formatTime(gameTime)}
+          </Text>
+          <Text style={styles.statsText}>
+            {t("moves")}: {moves}
+          </Text>
+          <Text style={styles.statsText}>
+            {t("couples")}: {matchedCards.length / 2}/8
           </Text>
         </View>
       </View>
 
       <View style={styles.progressContainer}>
         <Text style={styles.progressText}>
-          Napredak: {Math.round(progress)}%
+          {t("progress")}: {Math.round(progress)}%
         </Text>
         <View style={styles.progressBar}>
           <View style={[styles.progressFill, { width: `${progress}%` }]} />
@@ -288,25 +247,15 @@ const MemoryMatchScreen = ({ navigation, route }) => {
         </View>
       </View>
 
-      <View style={styles.instructionsContainer}>
-        <Text style={styles.instructionsTitle}>Kako igrati:</Text>
-        <Text style={styles.instructionsText}>
-          • Kliknite na karte da ih okrenete{"\n"}• Pronađite parove sa istim
-          simbolom{"\n"}• Završite igru u što manje poteza{"\n"}• Brži završetak
-          donosi više bodova
-        </Text>
-      </View>
-
       <View style={styles.buttonsContainer}>
         <TouchableOpacity
           style={[styles.actionButton, styles.backButton]}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.actionButtonText}>Nazad</Text>
+          <Text style={styles.actionButtonText}>{t("back")}</Text>
         </TouchableOpacity>
-
         <TouchableOpacity style={styles.actionButton} onPress={restartGame}>
-          <Text style={styles.actionButtonText}>Nova igra</Text>
+          <Text style={styles.actionButtonText}>{t("newGame")}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -314,40 +263,23 @@ const MemoryMatchScreen = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
+  container: { flex: 1, backgroundColor: "#f0f8ff" },
+  loadingContainer: {
     flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: "#f0f8ff",
   },
-  header: {
-    backgroundColor: "#cdd193",
-    padding: 20,
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "white",
-    marginBottom: 5,
-  },
-  player: {
-    fontSize: 16,
-    color: "white",
-    marginBottom: 10,
-  },
+  header: { backgroundColor: "#cdd193", padding: 20, alignItems: "center" },
+  title: { fontSize: 28, fontWeight: "bold", color: "white", marginBottom: 5 },
+  player: { fontSize: 16, color: "white", marginBottom: 10 },
   statsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
   },
-  statsText: {
-    fontSize: 14,
-    color: "white",
-    fontWeight: "bold",
-  },
-  progressContainer: {
-    padding: 20,
-    alignItems: "center",
-  },
+  statsText: { fontSize: 14, color: "white", fontWeight: "bold" },
+  progressContainer: { padding: 20, alignItems: "center" },
   progressText: {
     fontSize: 16,
     fontWeight: "bold",
@@ -361,14 +293,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     overflow: "hidden",
   },
-  progressFill: {
-    height: "100%",
-    backgroundColor: "#4caf50",
-  },
-  gameContainer: {
-    padding: 20,
-    alignItems: "center",
-  },
+  progressFill: { height: "100%", backgroundColor: "#4caf50" },
+  gameContainer: { padding: 20, alignItems: "center" },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -384,10 +310,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
   },
   flippedCard: {
     backgroundColor: "#e3f2fd",
@@ -399,28 +321,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#4caf50",
   },
-  cardText: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "white",
-  },
-  instructionsContainer: {
-    padding: 20,
-    backgroundColor: "#f5f5f5",
-    margin: 20,
-    borderRadius: 12,
-  },
-  instructionsTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 10,
-  },
-  instructionsText: {
-    fontSize: 14,
-    color: "#666",
-    lineHeight: 20,
-  },
+  cardText: { fontSize: 24, fontWeight: "bold", color: "white" },
   buttonsContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -434,14 +335,8 @@ const styles = StyleSheet.create({
     minWidth: 100,
     alignItems: "center",
   },
-  backButton: {
-    backgroundColor: "#666",
-  },
-  actionButtonText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "white",
-  },
+  backButton: { backgroundColor: "#666" },
+  actionButtonText: { fontSize: 16, fontWeight: "bold", color: "white" },
 });
 
 export default MemoryMatchScreen;

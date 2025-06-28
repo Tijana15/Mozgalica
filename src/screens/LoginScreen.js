@@ -8,14 +8,17 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { checkUserCredentials } from "../utils/database";
+import { useTranslation } from "react-i18next"; // 1. Import hook-a
 
 const LoginScreen = ({ navigation }) => {
+  const { t } = useTranslation(); // 2. Poziv hook-a
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
     if (!username || !password) {
-      Alert.alert("Greška", "Unesite korisničko ime i lozinku.");
+      // Prevod za Alert poruke
+      Alert.alert(t("errorTitle"), t("enterUserPass"));
       return;
     }
 
@@ -24,12 +27,12 @@ const LoginScreen = ({ navigation }) => {
       if (isValid) {
         navigation.navigate("Home", { username });
       } else {
-        Alert.alert("Greška", "Netačno korisničko ime ili lozinka.");
+        Alert.alert(t("errorTitle"), t("invalidCredentialsError"));
       }
     } catch (error) {
       Alert.alert(
-        "Greška",
-        "Došlo je do greške prilikom prijave: " + error.message
+        t("errorTitle"),
+        `${t("loginGenericError")} ${error.message}`
       );
       console.error("Greška pri prijavi:", error);
     }
@@ -37,27 +40,28 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Prijava</Text>
+      {/* 3. Korišćenje prevoda */}
+      <Text style={styles.title}>{t("signin")}</Text>
       <TextInput
         style={styles.input}
-        placeholder="Korisničko ime"
+        placeholder={t("usernamePlaceholder")}
         value={username}
         onChangeText={setUsername}
         autoCapitalize="none"
       />
       <TextInput
         style={styles.input}
-        placeholder="Lozinka"
+        placeholder={t("passwordPlaceholder")}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Prijavi se</Text>
+        <Text style={styles.buttonText}>{t("signInButton")}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate("Register")}>
         <Text style={styles.linkText1}>
-          Nemate nalog? <Text style={styles.linkText}>Registrujte se</Text>
+          {t("noAccount")} <Text style={styles.linkText}>{t("register")}</Text>
         </Text>
       </TouchableOpacity>
     </View>

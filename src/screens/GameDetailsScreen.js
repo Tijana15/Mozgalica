@@ -8,56 +8,53 @@ import {
   Linking,
   Alert,
 } from "react-native";
+import { useTranslation } from "react-i18next"; // 1. Import hook-a
 
 const GameDetailsScreen = ({ navigation, route }) => {
+  const { t } = useTranslation(); // 2. Poziv hook-a
   const { gameId, gameTitle, username } = route.params;
 
+  // 3. Modifikacija objekta da koristi ključeve za prevod
   const gameDetails = {
     sudoku: {
-      title: "Sudoku",
+      titleKey: "sudoku",
       icon: "🔢",
-      description:
-        "Sudoku je logička igra popunjavanja brojeva. Cilj je da popunite 9x9 mrežu brojevima od 1 do 9, tako da se svaki broj pojavi tačno jednom u svakom redu, koloni i 3x3 kvadratu.",
-      rules: [
-        "Popunite sve prazne ćelije brojevima 1-9",
-        "Svaki broj se može pojaviti samo jednom u redu",
-        "Svaki broj se može pojaviti samo jednom u koloni",
-        "Svaki broj se može pojaviti samo jednom u 3x3 kvadratu",
+      descriptionKey: "sudokuDescriptionGame",
+      rulesKeys: [
+        "sudokuRules1",
+        "sudokuRules2",
+        "sudokuRules3",
+        "sudokuRules4",
       ],
-      scoring:
-        "Bodovi se dodjeljuju na osnovu brzine rješavanja i broja grešaka. Maksimalno 1000 bodova.",
+      scoringKey: "scoringRuleSudoku",
       youtubeUrl: "https://www.youtube.com/watch?v=8zRXDsGydeQ",
       color: "#bacc81",
     },
     mathquiz: {
-      title: "Matematički kviz",
+      titleKey: "mathQuiz",
       icon: "🧮",
-      description:
-        "Testiranje matematičkih znanja kroz različite tipove zadataka. Odgovorite na što više pitanja u ograničenom vremenu.",
-      rules: [
-        "Odgovorite na matematička pitanja",
-        "Imate ograničeno vreme za svako pitanje",
-        "Odgovorite tačno da biste osvojili bodove",
-        "Pogrešan odgovor ne oduzima bodove",
+      descriptionKey: "mathQuizDescriptionGame",
+      rulesKeys: [
+        "mathQuizRules1",
+        "mathQuizRules2",
+        "mathQuizRules3",
+        "mathQuizRules4",
       ],
-      scoring:
-        "Svaki tačan odgovor donosi 10 bodova. Bonus bodovi za brzinu odgovora.",
+      scoringKey: "scoringRuleMathQuiz",
       youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
       color: "#478c5c",
     },
     memorymatch: {
-      title: "Memory Match",
+      titleKey: "memoryMatch",
       icon: "🧠",
-      description:
-        "Igra memorije gde trebate da pronađete parove identičnih kartica. Testirajte svoju memoriju i koncentraciju.",
-      rules: [
-        "Okrenite kartice da vidite šta se krije ispod",
-        "Pronađite parove identičnih kartica",
-        "Kartice ostaju okrenute kad nađete par",
-        "Cilj je da pronađete sve parove",
+      descriptionKey: "memoryMatchDescriptionGame",
+      rulesKeys: [
+        "memoryMatchGameRules1",
+        "memoryMatchGameRules2",
+        "memoryMatchGameRules3",
+        "memoryMatchGameRules4",
       ],
-      scoring:
-        "Bodovi se dodeljuju na osnovu broja poteza i vremena. Manje poteza = više bodova.",
+      scoringKey: "scoringRuleMemoryMatch",
       youtubeUrl: "https://www.youtube.com/watch?v=oFfYmrGeTPs",
       color: "#013a20",
     },
@@ -66,17 +63,13 @@ const GameDetailsScreen = ({ navigation, route }) => {
   const currentGame = gameDetails[gameId];
 
   const handleOpenYouTube = () => {
-    Alert.alert(
-      "Otvaranje YouTube-a",
-      "Da li želite da otvorite YouTube video?",
-      [
-        { text: "Ne", style: "cancel" },
-        {
-          text: "Da",
-          onPress: () => Linking.openURL(currentGame.youtubeUrl),
-        },
-      ]
-    );
+    Alert.alert(t("youtubeTitle"), t("youtubePrompt"), [
+      { text: t("no"), style: "cancel" },
+      {
+        text: t("yes"),
+        onPress: () => Linking.openURL(currentGame.youtubeUrl),
+      },
+    ]);
   };
 
   const handleStartGame = () => {
@@ -93,27 +86,29 @@ const GameDetailsScreen = ({ navigation, route }) => {
     <ScrollView style={styles.container}>
       <View style={[styles.header, { backgroundColor: currentGame.color }]}>
         <Text style={styles.icon}>{currentGame.icon}</Text>
-        <Text style={styles.title}>{currentGame.title}</Text>
+        <Text style={styles.title}>{t(currentGame.titleKey)}</Text>
       </View>
 
       <View style={styles.content}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Opis igre</Text>
-          <Text style={styles.description}>{currentGame.description}</Text>
+          <Text style={styles.sectionTitle}>{t("gameDescription")}</Text>
+          <Text style={styles.description}>
+            {t(currentGame.descriptionKey)}
+          </Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pravila igre</Text>
-          {currentGame.rules.map((rule, index) => (
+          <Text style={styles.sectionTitle}>{t("gameRules")}</Text>
+          {currentGame.rulesKeys.map((ruleKey, index) => (
             <Text key={index} style={styles.rule}>
-              • {rule}
+              • {t(ruleKey)}
             </Text>
           ))}
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Bodovanje</Text>
-          <Text style={styles.scoring}>{currentGame.scoring}</Text>
+          <Text style={styles.sectionTitle}>{t("scoring")}</Text>
+          <Text style={styles.scoring}>{t(currentGame.scoringKey)}</Text>
         </View>
 
         <View style={styles.buttonContainer}>
@@ -121,14 +116,14 @@ const GameDetailsScreen = ({ navigation, route }) => {
             style={styles.youtubeButton}
             onPress={handleOpenYouTube}
           >
-            <Text style={styles.buttonText}>📺 Pogledaj YouTube video</Text>
+            <Text style={styles.buttonText}>📺 {t("watchYTVideo")}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.startButton, { backgroundColor: currentGame.color }]}
             onPress={handleStartGame}
           >
-            <Text style={styles.startButtonText}>🎮 Započni igru</Text>
+            <Text style={styles.startButtonText}>🎮 {t("startGame")}</Text>
           </TouchableOpacity>
         </View>
       </View>

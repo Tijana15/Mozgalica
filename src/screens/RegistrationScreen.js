@@ -8,68 +8,72 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { registerUser } from "../utils/database";
+import { useTranslation } from "react-i18next"; // 1. Import hook-a
 
 const RegistrationScreen = ({ navigation }) => {
+  const { t } = useTranslation(); // 2. Poziv hook-a
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleRegister = async () => {
     if (!username || !password || !confirmPassword) {
-      Alert.alert("Greška", "Sva polja moraju biti popunjena.");
+      Alert.alert(t("errorTitle"), t("allFieldsRequired"));
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert("Greška", "Lozinke se ne podudaraju.");
+      Alert.alert(t("errorTitle"), t("passwordsDoNotMatch"));
       return;
     }
 
     try {
       const success = await registerUser(username, password);
       if (success) {
-        Alert.alert("Uspeh", "Registracija uspešna! Sada se možete prijaviti.");
+        Alert.alert(t("successTitle"), t("registrationSuccessMessage"));
         navigation.navigate("Login");
       } else {
-        Alert.alert("Greška", "Registracija neuspešna. Pokušajte ponovo.");
+        Alert.alert(t("errorTitle"), t("registrationFailedMessage"));
       }
     } catch (error) {
       Alert.alert(
-        "Greška",
-        error.message || "Došlo je do greške prilikom registracije."
+        t("errorTitle"),
+        error.message || t("registrationGenericError")
       );
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Registracija</Text>
+      {/* 3. Korišćenje prevoda */}
+      <Text style={styles.title}>{t("registerTitle")}</Text>
       <TextInput
         style={styles.input}
-        placeholder="Korisničko ime"
+        placeholder={t("usernamePlaceholder")}
         value={username}
         onChangeText={setUsername}
         autoCapitalize="none"
       />
       <TextInput
         style={styles.input}
-        placeholder="Lozinka"
+        placeholder={t("passwordPlaceholder")}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
       <TextInput
         style={styles.input}
-        placeholder="Potvrdi lozinku"
+        placeholder={t("confirmPasswordPlaceholder")}
         value={confirmPassword}
         onChangeText={setConfirmPassword}
         secureTextEntry
       />
       <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Registruj se</Text>
+        <Text style={styles.buttonText}>{t("registerButton")}</Text>
       </TouchableOpacity>
-      {/* Dugme za navigaciju nazad na ekran za prijavu */}
       <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-        <Text style={styles.linkText}>Već imate nalog? Prijavite se</Text>
+        <Text style={styles.linkText}>
+          {t("alreadyHaveAccount")} <Text style={styles.linkTextBold}>{t("signin")}</Text>
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -122,6 +126,10 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
   },
+  linkTextBold: {
+    fontWeight: 'bold',
+    textDecorationLine: 'underline'
+  }
 });
 
 export default RegistrationScreen;
