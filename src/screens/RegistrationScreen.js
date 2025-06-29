@@ -8,10 +8,10 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { registerUser } from "../utils/database";
-import { useTranslation } from "react-i18next"; // 1. Import hook-a
+import { useTranslation } from "react-i18next";
 
 const RegistrationScreen = ({ navigation }) => {
-  const { t } = useTranslation(); // 2. Poziv hook-a
+  const { t } = useTranslation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -72,7 +72,8 @@ const RegistrationScreen = ({ navigation }) => {
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate("Login")}>
         <Text style={styles.linkText}>
-          {t("alreadyHaveAccount")} <Text style={styles.linkTextBold}>{t("signin")}</Text>
+          {t("alreadyHaveAccount")}{" "}
+          <Text style={styles.linkTextBold}>{t("signin")}</Text>
         </Text>
       </TouchableOpacity>
     </View>
@@ -127,9 +128,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   linkTextBold: {
-    fontWeight: 'bold',
-    textDecorationLine: 'underline'
-  }
+    fontWeight: "bold",
+    textDecorationLine: "underline",
+  },
 });
 
 export default RegistrationScreen;

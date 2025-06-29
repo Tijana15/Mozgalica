@@ -10,10 +10,10 @@ import {
 } from "react-native";
 import { saveGameResult } from "../../utils/database";
 import * as SQLite from "expo-sqlite";
-import { useTranslation } from "react-i18next"; // 1. Import hook-a
+import { useTranslation } from "react-i18next";
 
 const MathQuizScreen = ({ navigation, route }) => {
-  const { t } = useTranslation(); // 2. Poziv hook-a
+  const { t } = useTranslation();
   const { username } = route.params;
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
@@ -49,7 +49,6 @@ const MathQuizScreen = ({ navigation, route }) => {
   }, []);
 
   const generateQuestions = () => {
-    // ... (logika za generisanje pitanja ostaje ista)
     const newQuestions = [];
     const operations = ["+", "-", "*", "/"];
     for (let i = 0; i < TOTAL_QUESTIONS; i++) {

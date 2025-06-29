@@ -8,10 +8,10 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { checkUserCredentials } from "../utils/database";
-import { useTranslation } from "react-i18next"; // 1. Import hook-a
+import { useTranslation } from "react-i18next";
 
 const LoginScreen = ({ navigation }) => {
-  const { t } = useTranslation(); // 2. Poziv hook-a
+  const { t } = useTranslation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 

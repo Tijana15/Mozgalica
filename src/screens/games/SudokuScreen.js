@@ -11,13 +11,12 @@ import {
 } from "react-native";
 import { saveGameResult } from "../../utils/database";
 import * as SQLite from "expo-sqlite";
-import { useTranslation } from "react-i18next"; // 1. Import hook-a
+import { useTranslation } from "react-i18next";
 
 const SudokuScreen = ({ navigation, route }) => {
-  const { t } = useTranslation(); // 2. Poziv hook-a
+  const { t } = useTranslation();
   const { username } = route.params;
 
-  // Svi useState pozivi
   const [sudokuGrid, setSudokuGrid] = useState([]);
   const [originalGrid, setOriginalGrid] = useState([]);
   const [selectedCell, setSelectedCell] = useState(null);
@@ -28,7 +27,6 @@ const SudokuScreen = ({ navigation, route }) => {
   const [db, setDb] = useState(null);
   const [isLoadingDb, setIsLoadingDb] = useState(true);
 
-  // useEffect za otvaranje baze
   useEffect(() => {
     async function openAndInitDb() {
       try {
@@ -48,7 +46,6 @@ const SudokuScreen = ({ navigation, route }) => {
     openAndInitDb();
   }, []);
 
-  // useEffect za inicijalizaciju igre
   useEffect(() => {
     const puzzle = generateSudokuPuzzle();
     setSudokuGrid(puzzle);
@@ -56,7 +53,6 @@ const SudokuScreen = ({ navigation, route }) => {
     setStartTime(Date.now());
   }, []);
 
-  // useEffect za tajmer
   useEffect(() => {
     let interval;
     if (startTime && !isGameComplete) {
@@ -178,9 +174,7 @@ const SudokuScreen = ({ navigation, route }) => {
     setIsGameComplete(false);
   };
 
-  const getHint = () => {
-    /* ... */
-  };
+  const getHint = () => {};
   const shouldHighlightCell = (row, col) =>
     highlightedNumber ? sudokuGrid[row][col] === highlightedNumber : false;
 

@@ -10,10 +10,10 @@ import {
 } from "react-native";
 import { saveGameResult } from "../../utils/database";
 import * as SQLite from "expo-sqlite";
-import { useTranslation } from "react-i18next"; // 1. Import hook-a
+import { useTranslation } from "react-i18next";
 
 const MemoryMatchScreen = ({ navigation, route }) => {
-  const { t } = useTranslation(); // 2. Poziv hook-a
+  const { t } = useTranslation();
   const { username } = route.params;
   const [db, setDb] = useState(null);
   const [isLoadingDb, setIsLoadingDb] = useState(true);

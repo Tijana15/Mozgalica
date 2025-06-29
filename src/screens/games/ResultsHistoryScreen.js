@@ -11,10 +11,10 @@ import {
   TextInput,
 } from "react-native";
 import { getGameResults } from "../../utils/database";
-import { useTranslation } from "react-i18next"; // 1. Import hook-a
+import { useTranslation } from "react-i18next";
 
 const ResultsHistoryScreen = ({ navigation, route }) => {
-  const { t } = useTranslation(); // 2. Poziv hook-a
+  const { t } = useTranslation();
   const { username, db } = route.params;
   const [results, setResults] = useState([]);
   const [filteredResults, setFilteredResults] = useState([]);
@@ -23,7 +23,6 @@ const ResultsHistoryScreen = ({ navigation, route }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Modifikovano za prevođenje
   const gameTypes = [
     { key: "allFilter", value: "Sve" },
     { key: "sudoku", value: "Sudoku" },

@@ -8,13 +8,12 @@ import {
   Linking,
   Alert,
 } from "react-native";
-import { useTranslation } from "react-i18next"; // 1. Import hook-a
+import { useTranslation } from "react-i18next";
 
 const GameDetailsScreen = ({ navigation, route }) => {
-  const { t } = useTranslation(); // 2. Poziv hook-a
+  const { t } = useTranslation();
   const { gameId, gameTitle, username } = route.params;
 
-  // 3. Modifikacija objekta da koristi ključeve za prevod
   const gameDetails = {
     sudoku: {
       titleKey: "sudoku",

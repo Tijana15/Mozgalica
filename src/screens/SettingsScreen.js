@@ -8,10 +8,10 @@ import {
   Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useTranslation } from "react-i18next"; // 1. Import hook-a
+import { useTranslation } from "react-i18next";
 
 const SettingsScreen = ({ navigation, route }) => {
-  const { t, i18n } = useTranslation(); // 2. Poziv hook-a
+  const { t, i18n } = useTranslation();
   const { username } = route.params || {};
 
   const languages = [
@@ -20,12 +20,10 @@ const SettingsScreen = ({ navigation, route }) => {
     { code: "es", name: "Español", flag: "🇪🇸" },
   ];
 
-  // Nema više potrebe za lokalnim stanjem jezika, i18n to rešava.
-
   const saveLanguage = async (languageCode) => {
     try {
       await AsyncStorage.setItem("selectedLanguage", languageCode);
-      i18n.changeLanguage(languageCode); // Ova linija će automatski osvežiti interfejs
+      i18n.changeLanguage(languageCode);
       Alert.alert(t("successTitle"), t("languageChangedSuccess"), [
         { text: "OK" },
       ]);
@@ -58,7 +56,7 @@ const SettingsScreen = ({ navigation, route }) => {
                 key={language.code}
                 style={[
                   styles.languageCard,
-                  // Proveravamo direktno trenutni jezik iz i18n instance
+
                   i18n.language === language.code && styles.selectedLanguage,
                 ]}
                 onPress={() => handleLanguagePress(language.code)}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, ActivityIndicator, StyleSheet, Alert } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import { useTranslation } from "react-i18next"; // 1. Import hook-a
+import { useTranslation } from "react-i18next";
 
 import { initDatabase } from "./src/utils/database";
 import LoginScreen from "./src/screens/LoginScreen";
@@ -14,11 +14,10 @@ import HomeScreen from "./src/screens/HomeScreen";
 import GameDetailsScreen from "./src/screens/GameDetailsScreen";
 import SudokuScreen from "./src/screens/games/SudokuScreen";
 import SettingsScreen from "./src/screens/SettingsScreen";
-import "./src/utils/i18n"; // Osigurava da je i18n instanca inicijalizovana
+import "./src/utils/i18n";
 
 const Stack = createStackNavigator();
 
-// 2. Kreiramo novu komponentu za navigaciju koja može koristiti hook
 const AppNavigator = () => {
   const { t } = useTranslation();
 
@@ -94,8 +93,6 @@ export default function App() {
         await initDatabase();
         setIsDbInitialized(true);
       } catch (e) {
-        // Ne možemo koristiti hook ovde, ali i18n instanca je dostupna
-        // i možemo koristiti ključeve koje smo već definisali
         Alert.alert(
           "Greška",
           "Aplikacija se ne može pokrenuti, greška baze:" + e
@@ -115,7 +112,7 @@ export default function App() {
     );
   }
 
-  return <AppNavigator />; // 3. Renderujemo novu komponentu
+  return <AppNavigator />;
 }
 
 const styles = StyleSheet.create({

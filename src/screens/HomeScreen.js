@@ -6,13 +6,12 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import { useTranslation } from "react-i18next"; // 1. Import hook-a
+import { useTranslation } from "react-i18next";
 
 const HomeScreen = ({ navigation, route }) => {
-  const { t } = useTranslation(); // 2. Poziv hook-a
+  const { t } = useTranslation();
   const { username } = route.params || {};
 
-  // Lista igara sada koristi ključeve za prevod
   const games = [
     {
       id: "sudoku",
@@ -40,7 +39,7 @@ const HomeScreen = ({ navigation, route }) => {
   const handleGamePress = (game) => {
     navigation.navigate("GameDetails", {
       gameId: game.id,
-      gameTitle: t(game.titleKey), // Prosleđujemo preveden naslov
+      gameTitle: t(game.titleKey),
       username: username,
     });
   };
@@ -63,7 +62,6 @@ const HomeScreen = ({ navigation, route }) => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        {/* 3. Korišćenje prevoda */}
         <Text style={styles.welcomeText}>
           {t("welcome")}, {username}!
         </Text>
