@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Alert,
   TouchableOpacity,
+  Image,
 } from "react-native";
 import { checkUserCredentials } from "../utils/database";
 import { useTranslation } from "react-i18next";
@@ -40,7 +41,7 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* 3. Korišćenje prevoda */}
+      <Image source={require("../../assets/icon.jpg")} style={styles.logo} />
       <Text style={styles.title}>{t("signin")}</Text>
       <TextInput
         style={styles.input}
@@ -120,6 +121,12 @@ const styles = StyleSheet.create({
     color: "#013a20",
     marginTop: 10,
     fontSize: 16,
+  },
+  logo: {
+    width: 120,
+    height: 120,
+    borderRadius: 20,
+    marginBottom: 30,
   },
 });
 

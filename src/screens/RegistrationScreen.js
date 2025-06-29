@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Alert,
   TouchableOpacity,
+  Image,
 } from "react-native";
 import { registerUser } from "../utils/database";
 import { useTranslation } from "react-i18next";
@@ -44,7 +45,8 @@ const RegistrationScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* 3. Korišćenje prevoda */}
+      <Image source={require("../../assets/icon.jpg")} style={styles.logo} />
+
       <Text style={styles.title}>{t("registerTitle")}</Text>
       <TextInput
         style={styles.input}
@@ -130,6 +132,12 @@ const styles = StyleSheet.create({
   linkTextBold: {
     fontWeight: "bold",
     textDecorationLine: "underline",
+  },
+  logo: {
+    width: 120,
+    height: 120,
+    borderRadius: 20,
+    marginBottom: 30,
   },
 });
 

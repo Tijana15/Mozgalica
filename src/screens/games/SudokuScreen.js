@@ -199,7 +199,6 @@ const SudokuScreen = ({ navigation, route }) => {
       return;
     }
 
-    // Provera da li je rešenje tačno pre čuvanja
     for (let i = 0; i < 9; i++) {
       for (let j = 0; j < 9; j++) {
         if (finalGrid[i][j] !== solutionGrid[i][j]) {
