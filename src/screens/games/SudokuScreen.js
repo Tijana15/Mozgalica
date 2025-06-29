@@ -17,8 +17,10 @@ const SudokuScreen = ({ navigation, route }) => {
   const { t } = useTranslation();
   const { username } = route.params;
 
+  // --- STATE ---
   const [sudokuGrid, setSudokuGrid] = useState([]);
   const [originalGrid, setOriginalGrid] = useState([]);
+  const [solutionGrid, setSolutionGrid] = useState([]); // NOVO: Čuvamo rešenje za hint
   const [selectedCell, setSelectedCell] = useState(null);
   const [highlightedNumber, setHighlightedNumber] = useState(null);
   const [startTime, setStartTime] = useState(null);
@@ -26,33 +28,29 @@ const SudokuScreen = ({ navigation, route }) => {
   const [isGameComplete, setIsGameComplete] = useState(false);
   const [db, setDb] = useState(null);
   const [isLoadingDb, setIsLoadingDb] = useState(true);
+  const [hintCount, setHintCount] = useState(0);
 
+  // --- USE EFFECT HOOKS ---
   useEffect(() => {
     async function openAndInitDb() {
       try {
         const database = await SQLite.openDatabaseAsync("mojaNovaBaza.db");
         setDb(database);
-        console.log("SudokuScreen: Baza podataka uspješno otvorena.");
       } catch (error) {
-        console.error(
-          "SudokuScreen: Greška pri otvaranju ili inicijalizaciji baze:",
-          error
-        );
         Alert.alert(t("dbErrorTitle"), t("dbErrorLoad"));
       } finally {
         setIsLoadingDb(false);
       }
     }
     openAndInitDb();
-  }, []);
+  }, [t]);
 
+  // Inicijalizacija igre
   useEffect(() => {
-    const puzzle = generateSudokuPuzzle();
-    setSudokuGrid(puzzle);
-    setOriginalGrid(puzzle.map((row) => [...row]));
-    setStartTime(Date.now());
+    restartGame();
   }, []);
 
+  // Tajmer
   useEffect(() => {
     let interval;
     if (startTime && !isGameComplete) {
@@ -63,7 +61,9 @@ const SudokuScreen = ({ navigation, route }) => {
     return () => clearInterval(interval);
   }, [startTime, isGameComplete]);
 
+  // --- FUNKCIJE ZA GENERISANJE IGRE ---
   const generateSudokuPuzzle = () => {
+    // Fiksno rešenje kao osnova
     const completeGrid = [
       [5, 3, 4, 6, 7, 8, 9, 1, 2],
       [6, 7, 2, 1, 9, 5, 3, 4, 8],
@@ -75,19 +75,23 @@ const SudokuScreen = ({ navigation, route }) => {
       [2, 8, 7, 4, 1, 9, 6, 3, 5],
       [3, 4, 5, 2, 8, 6, 1, 7, 9],
     ];
+
     const puzzleGrid = completeGrid.map((row) => [...row]);
-    let cellsToRemove = 40;
-    while (cellsToRemove > 0) {
+    let cellsToRemove = 40; // Težina igre
+    let attempts = 0;
+    while (cellsToRemove > 0 && attempts < 1000) {
       const row = Math.floor(Math.random() * 9);
       const col = Math.floor(Math.random() * 9);
       if (puzzleGrid[row][col] !== 0) {
         puzzleGrid[row][col] = 0;
         cellsToRemove--;
       }
+      attempts++;
     }
-    return puzzleGrid;
+    return { puzzle: puzzleGrid, solution: completeGrid };
   };
 
+  // --- FUNKCIJE ZA IGRU ---
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -97,13 +101,15 @@ const SudokuScreen = ({ navigation, route }) => {
   };
 
   const isValidMove = (grid, row, col, num) => {
-    for (let i = 0; i < 9; i++) if (grid[row][i] === num) return false;
-    for (let i = 0; i < 9; i++) if (grid[i][col] === num) return false;
+    for (let i = 0; i < 9; i++)
+      if (grid[row][i] === num && i !== col) return false;
+    for (let i = 0; i < 9; i++)
+      if (grid[i][col] === num && i !== row) return false;
     const startRow = Math.floor(row / 3) * 3;
     const startCol = Math.floor(col / 3) * 3;
     for (let i = startRow; i < startRow + 3; i++) {
       for (let j = startCol; j < startCol + 3; j++) {
-        if (grid[i][j] === num) return false;
+        if (grid[i][j] === num && (i !== row || j !== col)) return false;
       }
     }
     return true;
@@ -111,51 +117,113 @@ const SudokuScreen = ({ navigation, route }) => {
 
   const checkGameComplete = (grid) => !grid.some((row) => row.includes(0));
 
+  // --- HANDLERI ZA KORISNIČKE AKCIJE ---
   const handleCellPress = (row, col) => {
-    if (originalGrid[row][col] !== 0) return;
-    setSelectedCell({ row, col });
-    setHighlightedNumber(null);
+    const clickedNumber = sudokuGrid[row][col];
+
+    if (originalGrid[row][col] !== 0) {
+      // ✅ IZMENA: Ako se klikne na originalni broj, highlight-uj ga
+      setSelectedCell(null); // Deselektuj bilo koju praznu ćeliju
+      setHighlightedNumber(clickedNumber);
+    } else {
+      // Ako se klikne na praznu ćeliju, selektuj je
+      setSelectedCell({ row, col });
+      setHighlightedNumber(null); // Ukloni highlight
+    }
   };
 
   const handleNumberPress = (num) => {
+    // ✅ IZMENA: Ova funkcija sada služi samo za unos broja
     if (!selectedCell) {
-      setHighlightedNumber(highlightedNumber === num ? null : num);
+      Alert.alert(t("selectCellFirstTitle"), t("selectCellFirstMessage"));
       return;
     }
     const { row, col } = selectedCell;
     if (originalGrid[row][col] !== 0) return;
+
     const newGrid = sudokuGrid.map((r) => [...r]);
-    if (num === 0 || isValidMove(newGrid, row, col, num)) {
-      newGrid[row][col] = num;
-      setSudokuGrid(newGrid);
-      if (num !== 0) setHighlightedNumber(num);
-      else setHighlightedNumber(null);
-      if (checkGameComplete(newGrid)) {
-        setIsGameComplete(true);
-        saveGameComplete();
-      }
-    } else {
+    newGrid[row][col] = num; // Postavi broj (ili 0 za brisanje)
+
+    // Proveri validnost samo ako nije brisanje
+    if (num !== 0 && !isValidMove(sudokuGrid, row, col, num)) {
       Alert.alert(t("invalidMoveTitle"), t("invalidMoveMessage"));
+      return; // Ne dozvoli unos nevalidnog broja
+    }
+
+    setSudokuGrid(newGrid);
+
+    if (checkGameComplete(newGrid)) {
+      setIsGameComplete(true);
+      saveGameComplete(newGrid);
     }
   };
 
-  const saveGameComplete = async () => {
+  // ✅ IZMENA: Implementirana getHint funkcija
+  const getHint = () => {
+    const emptyCells = [];
+    for (let i = 0; i < 9; i++) {
+      for (let j = 0; j < 9; j++) {
+        if (sudokuGrid[i][j] === 0) {
+          emptyCells.push({ row: i, col: j });
+        }
+      }
+    }
+
+    if (emptyCells.length === 0) {
+      Alert.alert(t("hint"), t("noEmptyCells"));
+      return;
+    }
+
+    setHintCount((prevCount) => prevCount + 1);
+    const randomCell =
+      emptyCells[Math.floor(Math.random() * emptyCells.length)];
+    const { row, col } = randomCell;
+    const correctNumber = solutionGrid[row][col];
+
+    const newGrid = sudokuGrid.map((r) => [...r]);
+    newGrid[row][col] = correctNumber;
+
+    setSudokuGrid(newGrid);
+    setGameTime((prevTime) => prevTime + 30); // Opciono: Kazna od 30 sekundi za hint
+
+    if (checkGameComplete(newGrid)) {
+      setIsGameComplete(true);
+      saveGameComplete(newGrid);
+    }
+  };
+
+  const saveGameComplete = async (finalGrid) => {
+    // ... (logika za čuvanje ostaje ista, samo prima finalGrid)
     if (!db) {
       Alert.alert(t("errorTitle"), t("dbNotReady"));
       return;
     }
-    const score = Math.max(1000 - gameTime, 100);
+
+    // Provera da li je rešenje tačno pre čuvanja
+    for (let i = 0; i < 9; i++) {
+      for (let j = 0; j < 9; j++) {
+        if (finalGrid[i][j] !== solutionGrid[i][j]) {
+          Alert.alert(t("errorTitle"), t("solutionIncorrect"));
+          setIsGameComplete(false); // Dozvoli korisniku da ispravi
+          return;
+        }
+      }
+    }
+    const hintPenalty = hintCount * 50;
+    const score = Math.max(1000 - gameTime - hintPenalty, 100);
     try {
-      await saveGameResult(username, "Sudoku", score, gameTime, {}, db);
+      await saveGameResult(username, t("sudoku"), score, gameTime, {}, db);
       Alert.alert(
         t("congratsTitle"),
         t("congratsMessageSudoku", {
           time: formatTime(gameTime),
           score: score,
+          hintCount: hintCount,
+          penalty: hintPenalty,
         }),
         [
-          { text: t("newGame"), onPress: () => restartGame() },
-          { text: t("back"), onPress: () => navigation.goBack() },
+          { text: t("newGame"), onPress: restartGame },
+          { text: t("back"), onPress: navigation.goBack },
         ]
       );
     } catch (error) {
@@ -164,19 +232,22 @@ const SudokuScreen = ({ navigation, route }) => {
   };
 
   const restartGame = () => {
-    const puzzle = generateSudokuPuzzle();
+    const { puzzle, solution } = generateSudokuPuzzle();
     setSudokuGrid(puzzle);
     setOriginalGrid(puzzle.map((row) => [...row]));
+    setSolutionGrid(solution);
     setSelectedCell(null);
     setHighlightedNumber(null);
     setStartTime(Date.now());
     setGameTime(0);
     setIsGameComplete(false);
+    setHintCount(0);
   };
 
-  const getHint = () => {};
-  const shouldHighlightCell = (row, col) =>
-    highlightedNumber ? sudokuGrid[row][col] === highlightedNumber : false;
+  const shouldHighlightCell = (row, col) => {
+    if (!highlightedNumber) return false;
+    return sudokuGrid[row][col] === highlightedNumber;
+  };
 
   if (isLoadingDb) {
     return (
@@ -239,27 +310,17 @@ const SudokuScreen = ({ navigation, route }) => {
 
       <View style={styles.numbersContainer}>
         <Text style={styles.numbersTitle}>
-          {selectedCell ? t("selectNumber") : t("pressNumberToSelect")}
+          {selectedCell ? t("selectNumber") : t("selectNumberPrompt")}
         </Text>
         <View style={styles.numbersRow}>
           {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
             <TouchableOpacity
               key={num}
-              style={[
-                styles.numberButton,
-                highlightedNumber === num && styles.selectedNumberButton,
-              ]}
+              style={styles.numberButton}
               onPress={() => handleNumberPress(num)}
               disabled={isGameComplete}
             >
-              <Text
-                style={[
-                  styles.numberText,
-                  highlightedNumber === num && styles.selectedNumberText,
-                ]}
-              >
-                {num}
-              </Text>
+              <Text style={styles.numberText}>{num}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -316,10 +377,13 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     justifyContent: "center",
     alignItems: "center",
-    margin: 1,
   },
   originalCell: { backgroundColor: "#e8e8e8" },
-  selectedCell: { backgroundColor: "#ecf87f" },
+  selectedCell: {
+    backgroundColor: "#ecf87f",
+    borderWidth: 2,
+    borderColor: "#aa00ff",
+  },
   highlightedCell: { backgroundColor: "#a8d8a8" },
   bottomBorder: { borderBottomWidth: 3, borderBottomColor: "#333" },
   rightBorder: { borderRightWidth: 3, borderRightColor: "#333" },
@@ -348,13 +412,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     margin: 5,
   },
-  selectedNumberButton: {
-    backgroundColor: "#478c5c",
-    borderWidth: 2,
-    borderColor: "#2e7d32",
-  },
-  numberText: { fontSize: 18, fontWeight: "bold", color: "white" },
-  selectedNumberText: { color: "#fff", fontWeight: "900" },
   eraseButton: {
     paddingHorizontal: 20,
     paddingVertical: 10,

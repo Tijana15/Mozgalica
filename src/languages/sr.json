@@ -32,7 +32,7 @@
     "sudokuRules3":"Svaki broj se može pojaviti samo jednom u koloni",
     "sudokuRules4": "Svaki broj se može pojaviti samo jednom u 3x3 kvadratu",
     "scoring":"Bodovanje",
-    "scoringRuleSudoku":"Bodovi se dodjeljuju na osnovu brzine rješavanja i broja grešaka. Maksimalno 1000 bodova.",
+    "scoringRuleSudoku":"Bodovi se dodjeljuju na osnovu brzine rješavanja, broja grešaka te iskorištenosti hintova. Svakom upotrebom hinta se broj poena smanjuje za 50. Maksimalno 1000 bodova.",
     "watchYTVideo":"Pogledaj YouTube video",
     "startGame":"Započni igru",
     "player":"Igrač:",
@@ -79,7 +79,6 @@
     "invalidMoveTitle": "Nevaljan potez",
     "invalidMoveMessage": "Ovaj broj nije dozvoljen na ovoj poziciji!",
     "congratsTitle": "Čestitamo!",
-    "congratsMessageSudoku": "Rešili ste Sudoku za {{time}}!\nVaš skor: {{score}}",
     "loadingDb": "Učitavanje baze podataka...",
     "dbErrorTitle": "Greška baze",
     "dbErrorLoad": "Nije moguće pristupiti bazi podataka. Pokušajte ponovo.",
@@ -103,6 +102,12 @@
     "noResultsFor": "Nema rezultata za \"{{query}}\"",
     "languageChangedSuccess": "Jezik je uspešno promenjen.",
     "saveSettingsError": "Nije moguće sačuvati podešavanja.",
-    "homeTitle": "Mozzgalica"
+    "homeTitle": "Mozzgalica",
+    "selectCellFirstTitle": "Nema selekcije",
+    "selectCellFirstMessage": "Prvo morate selektovati prazno polje.",
+    "selectNumberPrompt": "Selektuj polje za unos broja",
+    "noEmptyCells": "Nema više praznih polja!",
+    "solutionIncorrect": "Rešenje nije tačno. Proverite unete brojeve.",
+    "congratsMessageSudoku": "Rešili ste Sudoku za {{time}}!\nVaš skor: {{score}}\n(Iskorišćeno {{hintCount}} pomoći, kazna -{{penalty}} poena)"
   }
 }

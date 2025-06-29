@@ -32,7 +32,7 @@
     "sudokuRules3": "Cada número solo puede aparecer una vez por columna",
     "sudokuRules4": "Cada número solo puede aparecer una vez en un cuadrado de 3x3",
     "scoring": "Puntuación",
-    "scoringRuleSudoku": "Los puntos se otorgan según la velocidad de resolución y el número de errores. Máximo 1000 puntos.",
+    "scoringRuleSudoku": "Los puntos se otorgan según la velocidad de resolución y el número de errores.Cada pista utilizada reduce la puntuación en 50 puntos. Máximo 1000 puntos.",
     "watchYTVideo": "Ver video en YouTube",
     "startGame": "Empezar Juego",
     "player": "Jugador:",
@@ -79,7 +79,6 @@
     "invalidMoveTitle": "Movimiento inválido",
     "invalidMoveMessage": "¡Este número no está permitido en esta posición!",
     "congratsTitle": "¡Felicidades!",
-    "congratsMessageSudoku": "¡Resolviste el Sudoku en {{time}}!\nTu puntuación: {{score}}",
     "loadingDb": "Cargando base de datos...",
     "dbErrorTitle": "Error de base de datos",
     "dbErrorLoad": "No se puede acceder a la base de datos. Por favor, inténtalo de nuevo.",
@@ -103,6 +102,12 @@
     "noResultsFor": "No hay resultados para \"{{query}}\"",
     "languageChangedSuccess": "El idioma se cambió con éxito.",
     "saveSettingsError": "No se pudo guardar la configuración.",
-    "homeTitle": "Mozzgalica"
+    "homeTitle": "Mozzgalica",
+    "selectCellFirstTitle": "Sin Selección",
+    "selectCellFirstMessage": "Primero debes seleccionar una celda vacía.",
+    "selectNumberPrompt": "Selecciona una celda para introducir un número",
+    "noEmptyCells": "¡No quedan celdas vacías!",
+    "solutionIncorrect": "La solución no es correcta. Por favor, comprueba tus números.",
+    "congratsMessageSudoku": "¡Resolviste el Sudoku en {{time}}!\nTu puntuación: {{score}}\n({{hintCount}} pistas usadas, -{{penalty}} puntos de penalización)"
   }
 }

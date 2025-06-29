@@ -32,7 +32,7 @@
     "sudokuRules3": "Each number can only appear once in a column",
     "sudokuRules4": "Each number can only appear once in a 3x3 square",
     "scoring": "Scoring",
-    "scoringRuleSudoku": "Points are awarded based on solving speed and number of mistakes. Maximum 1000 points.",
+    "scoringRuleSudoku": "Points are awarded based on solving speed and number of mistakes. Each hint used reduces the score by 50 points. Maximum 1000 points.",
     "watchYTVideo": "Watch YouTube video",
     "startGame": "Start Game",
     "player": "Player:",
@@ -79,7 +79,6 @@
     "invalidMoveTitle": "Invalid Move",
     "invalidMoveMessage": "This number is not allowed in this position!",
     "congratsTitle": "Congratulations!",
-    "congratsMessageSudoku": "You solved Sudoku in {{time}}!\nYour score: {{score}}",
     "loadingDb": "Loading database...",
     "dbErrorTitle": "Database Error",
     "dbErrorLoad": "Cannot access the database. Please try again.",
@@ -103,6 +102,12 @@
     "noResultsFor": "No results for \"{{query}}\"",
     "languageChangedSuccess": "Language changed successfully.",
     "saveSettingsError": "Could not save settings.",
-    "homeTitle": "Mozzgalica"
+    "homeTitle": "Mozzgalica",
+    "selectCellFirstTitle": "No Selection",
+    "selectCellFirstMessage": "You must select an empty cell first.",
+    "selectNumberPrompt": "Select a cell to enter a number",
+    "noEmptyCells": "No empty cells left!",
+    "solutionIncorrect": "The solution is not correct. Please check your numbers.",
+    "congratsMessageSudoku": "You solved Sudoku in {{time}}!\nYour score: {{score}}\n({{hintCount}} hints used, -{{penalty}} points penalty)"
   }
 }
