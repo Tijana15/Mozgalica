@@ -17,10 +17,9 @@ const SudokuScreen = ({ navigation, route }) => {
   const { t } = useTranslation();
   const { username } = route.params;
 
-  // --- STATE ---
   const [sudokuGrid, setSudokuGrid] = useState([]);
   const [originalGrid, setOriginalGrid] = useState([]);
-  const [solutionGrid, setSolutionGrid] = useState([]); // NOVO: Čuvamo rešenje za hint
+  const [solutionGrid, setSolutionGrid] = useState([]);
   const [selectedCell, setSelectedCell] = useState(null);
   const [highlightedNumber, setHighlightedNumber] = useState(null);
   const [startTime, setStartTime] = useState(null);
@@ -30,7 +29,6 @@ const SudokuScreen = ({ navigation, route }) => {
   const [isLoadingDb, setIsLoadingDb] = useState(true);
   const [hintCount, setHintCount] = useState(0);
 
-  // --- USE EFFECT HOOKS ---
   useEffect(() => {
     async function openAndInitDb() {
       try {
@@ -45,12 +43,10 @@ const SudokuScreen = ({ navigation, route }) => {
     openAndInitDb();
   }, [t]);
 
-  // Inicijalizacija igre
   useEffect(() => {
     restartGame();
   }, []);
 
-  // Tajmer
   useEffect(() => {
     let interval;
     if (startTime && !isGameComplete) {
@@ -61,9 +57,7 @@ const SudokuScreen = ({ navigation, route }) => {
     return () => clearInterval(interval);
   }, [startTime, isGameComplete]);
 
-  // --- FUNKCIJE ZA GENERISANJE IGRE ---
   const generateSudokuPuzzle = () => {
-    // Fiksno rešenje kao osnova
     const completeGrid = [
       [5, 3, 4, 6, 7, 8, 9, 1, 2],
       [6, 7, 2, 1, 9, 5, 3, 4, 8],
@@ -77,7 +71,7 @@ const SudokuScreen = ({ navigation, route }) => {
     ];
 
     const puzzleGrid = completeGrid.map((row) => [...row]);
-    let cellsToRemove = 40; // Težina igre
+    let cellsToRemove = 40;
     let attempts = 0;
     while (cellsToRemove > 0 && attempts < 1000) {
       const row = Math.floor(Math.random() * 9);
@@ -91,7 +85,6 @@ const SudokuScreen = ({ navigation, route }) => {
     return { puzzle: puzzleGrid, solution: completeGrid };
   };
 
-  // --- FUNKCIJE ZA IGRU ---
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -117,23 +110,19 @@ const SudokuScreen = ({ navigation, route }) => {
 
   const checkGameComplete = (grid) => !grid.some((row) => row.includes(0));
 
-  // --- HANDLERI ZA KORISNIČKE AKCIJE ---
   const handleCellPress = (row, col) => {
     const clickedNumber = sudokuGrid[row][col];
 
     if (originalGrid[row][col] !== 0) {
-      // ✅ IZMENA: Ako se klikne na originalni broj, highlight-uj ga
-      setSelectedCell(null); // Deselektuj bilo koju praznu ćeliju
+      setSelectedCell(null);
       setHighlightedNumber(clickedNumber);
     } else {
-      // Ako se klikne na praznu ćeliju, selektuj je
       setSelectedCell({ row, col });
-      setHighlightedNumber(null); // Ukloni highlight
+      setHighlightedNumber(null);
     }
   };
 
   const handleNumberPress = (num) => {
-    // ✅ IZMENA: Ova funkcija sada služi samo za unos broja
     if (!selectedCell) {
       Alert.alert(t("selectCellFirstTitle"), t("selectCellFirstMessage"));
       return;
@@ -142,12 +131,11 @@ const SudokuScreen = ({ navigation, route }) => {
     if (originalGrid[row][col] !== 0) return;
 
     const newGrid = sudokuGrid.map((r) => [...r]);
-    newGrid[row][col] = num; // Postavi broj (ili 0 za brisanje)
+    newGrid[row][col] = num;
 
-    // Proveri validnost samo ako nije brisanje
     if (num !== 0 && !isValidMove(sudokuGrid, row, col, num)) {
       Alert.alert(t("invalidMoveTitle"), t("invalidMoveMessage"));
-      return; // Ne dozvoli unos nevalidnog broja
+      return;
     }
 
     setSudokuGrid(newGrid);
@@ -158,7 +146,6 @@ const SudokuScreen = ({ navigation, route }) => {
     }
   };
 
-  // ✅ IZMENA: Implementirana getHint funkcija
   const getHint = () => {
     const emptyCells = [];
     for (let i = 0; i < 9; i++) {
@@ -184,7 +171,7 @@ const SudokuScreen = ({ navigation, route }) => {
     newGrid[row][col] = correctNumber;
 
     setSudokuGrid(newGrid);
-    setGameTime((prevTime) => prevTime + 30); // Opciono: Kazna od 30 sekundi za hint
+    setGameTime((prevTime) => prevTime + 30);
 
     if (checkGameComplete(newGrid)) {
       setIsGameComplete(true);
@@ -193,7 +180,6 @@ const SudokuScreen = ({ navigation, route }) => {
   };
 
   const saveGameComplete = async (finalGrid) => {
-    // ... (logika za čuvanje ostaje ista, samo prima finalGrid)
     if (!db) {
       Alert.alert(t("errorTitle"), t("dbNotReady"));
       return;
@@ -203,7 +189,7 @@ const SudokuScreen = ({ navigation, route }) => {
       for (let j = 0; j < 9; j++) {
         if (finalGrid[i][j] !== solutionGrid[i][j]) {
           Alert.alert(t("errorTitle"), t("solutionIncorrect"));
-          setIsGameComplete(false); // Dozvoli korisniku da ispravi
+          setIsGameComplete(false);
           return;
         }
       }

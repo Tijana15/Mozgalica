@@ -40,7 +40,6 @@ const GameDetailsScreen = ({ navigation, route }) => {
         "mathQuizRules4",
       ],
       scoringKey: "scoringRuleMathQuiz",
-      youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
       color: "#478c5c",
     },
     memorymatch: {
@@ -111,12 +110,14 @@ const GameDetailsScreen = ({ navigation, route }) => {
         </View>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.youtubeButton}
-            onPress={handleOpenYouTube}
-          >
-            <Text style={styles.buttonText}>📺 {t("watchYTVideo")}</Text>
-          </TouchableOpacity>
+          {currentGame.youtubeUrl && (
+            <TouchableOpacity
+              style={styles.youtubeButton}
+              onPress={handleOpenYouTube}
+            >
+              <Text style={styles.buttonText}>📺 {t("watchYTVideo")}</Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             style={[styles.startButton, { backgroundColor: currentGame.color }]}
