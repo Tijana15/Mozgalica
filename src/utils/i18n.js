@@ -2,7 +2,6 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Importujte vaše prevode
 import sr from "../languages/sr.json";
 import eng from "../languages/eng.json";
 import es from "../languages/es.json";
@@ -18,23 +17,23 @@ const languageDetector = {
   async: true,
   detect: async (callback) => {
     const savedLanguage = await AsyncStorage.getItem("selectedLanguage");
-    callback(savedLanguage || "sr"); // Vrati sačuvan jezik, ili srpski kao podrazumevani
+    callback(savedLanguage || "sr");
   },
   init: () => {},
   cacheUserLanguage: () => {},
 };
 
 i18n
-  .use(languageDetector) // Koristi naš detektor jezika
-  .use(initReactI18next) // Povezuje i18n sa React-om
+  .use(languageDetector)
+  .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: "sr", // Jezik koji se koristi ako prevod za trenutni ne postoji
+    fallbackLng: "sr",
     interpolation: {
-      escapeValue: false, // Nije potrebno za React jer on već štiti od XSS
+      escapeValue: false,
     },
     react: {
-      useSuspense: false, // Važno za React Native
+      useSuspense: false,
     },
   });
 

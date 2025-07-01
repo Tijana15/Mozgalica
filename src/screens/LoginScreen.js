@@ -18,7 +18,6 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     if (!username || !password) {
-      // Prevod za Alert poruke
       Alert.alert(t("errorTitle"), t("enterUserPass"));
       return;
     }
